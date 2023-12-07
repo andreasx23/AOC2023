@@ -65,27 +65,23 @@ namespace AOC2023.Day07
                 return Bid * rank;
             }
 
-            public bool IsFiveOfAKind()
+            public bool IsFiveOfAKind(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 return cardDict.First().Value == 5;
             }
 
-            public bool IsFourOfAKind()
+            public bool IsFourOfAKind(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 return cardDict.First().Value == 4;
             }
 
-            public bool IsThreeOfAKind()
+            public bool IsThreeOfAKind(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 return cardDict.First().Value == 3;
             }
 
-            public bool IsFullHouse()
+            public bool IsFullHouse(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 if (cardDict.Count != 2)
                 {
                     return false;
@@ -95,9 +91,8 @@ namespace AOC2023.Day07
                 return values[0] == 3 && values[1] == 2;
             }
 
-            public bool IsTwoPair()
+            public bool IsTwoPair(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 if (cardDict.Count != 3)
                 {
                     return false;
@@ -107,9 +102,8 @@ namespace AOC2023.Day07
                 return values[0] == 2 && values[1] == 2;
             }
 
-            public bool IsOnePair()
+            public bool IsOnePair(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 if (cardDict.Count != 4)
                 {
                     return false;
@@ -119,39 +113,40 @@ namespace AOC2023.Day07
                 return values[0] == 2;
             }
 
-            public bool IsHighCard()
+            public bool IsHighCard(Dictionary<string, int> cardDict)
             {
-                var cardDict = GetCardCountDict();
                 return cardDict.Count == 5;
             }
 
             public int GetHandScore()
             {
-                if (IsFiveOfAKind())
+                var cardDict = GetCardCountDict();
+
+                if (IsFiveOfAKind(cardDict))
                 {
                     return 100;
                 }
-                else if (IsFourOfAKind())
+                else if (IsFourOfAKind(cardDict))
                 {
                     return 99;
                 }
-                else if (IsFullHouse())
+                else if (IsFullHouse(cardDict))
                 {
                     return 98;
                 }
-                else if (IsThreeOfAKind())
+                else if (IsThreeOfAKind(cardDict))
                 {
                     return 97;
                 }
-                else if (IsTwoPair())
+                else if (IsTwoPair(cardDict))
                 {
                     return 96;
                 }
-                else if (IsOnePair())
+                else if (IsOnePair(cardDict))
                 {
                     return 95;
                 }
-                else if (IsHighCard())
+                else if (IsHighCard(cardDict))
                 {
                     return 94;
                 }

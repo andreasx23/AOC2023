@@ -75,88 +75,82 @@ namespace AOC2023.Day07
                 return Bid * rank;
             }
 
-            public bool IsFiveOfAKind()
+            public bool IsFiveOfAKind((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-
-                if (jokers == 5)
+                if (cards.jokers == 5)
                 {
                     return true;
                 }
 
-                var sum = dict.First().Value + jokers;
+                var sum = cards.dict.First().Value + cards.jokers;
                 return sum == 5;
             }
 
-            public bool IsFourOfAKind()
+            public bool IsFourOfAKind((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                var sum = dict.First().Value + jokers;
+                var sum = cards.dict.First().Value + cards.jokers;
                 return sum == 4;
             }
 
-            public bool IsThreeOfAKind()
+            public bool IsThreeOfAKind((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                var sum = dict.First().Value + jokers;
+                var sum = cards.dict.First().Value + cards.jokers;
                 return sum == 3;
             }
 
-            public bool IsFullHouse()
+            public bool IsFullHouse((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                var values = dict.Values.ToList();
-                var sum = values.Take(2).Sum() + jokers;
+                var values = cards.dict.Values.ToList();
+                var sum = values.Take(2).Sum() + cards.jokers;
                 return sum == 5;
             }
 
-            public bool IsTwoPair()
+            public bool IsTwoPair((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                var values = dict.Values.ToList();
-                var sum = values.Take(2).Sum() + jokers;
+                var values = cards.dict.Values.ToList();
+                var sum = values.Take(2).Sum() + cards.jokers;
                 return sum == 4;
             }
 
-            public bool IsOnePair()
+            public bool IsOnePair((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                return dict.First().Value + jokers == 2;
+                return cards.dict.First().Value + cards.jokers == 2;
             }
 
-            public bool IsHighCard()
+            public bool IsHighCard((Dictionary<string, int> dict, int jokers) cards)
             {
-                var (dict, jokers) = GetCardCountDict();
-                return dict.Count == 5;
+                return cards.dict.Count == 5;
             }
 
             public int GetHandScore()
             {
-                if (IsFiveOfAKind())
+                var cards = GetCardCountDict();
+
+                if (IsFiveOfAKind(cards))
                 {
                     return 100;
                 }
-                else if (IsFourOfAKind())
+                else if (IsFourOfAKind(cards))
                 {
                     return 99;
                 }
-                else if (IsFullHouse())
+                else if (IsFullHouse(cards))
                 {
                     return 98;
                 }
-                else if (IsThreeOfAKind())
+                else if (IsThreeOfAKind(cards))
                 {
                     return 97;
                 }
-                else if (IsTwoPair())
+                else if (IsTwoPair(cards))
                 {
                     return 96;
                 }
-                else if (IsOnePair())
+                else if (IsOnePair(cards))
                 {
                     return 95;
                 }
-                else if (IsHighCard())
+                else if (IsHighCard(cards))
                 {
                     return 94;
                 }
