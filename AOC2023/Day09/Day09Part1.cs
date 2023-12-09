@@ -36,14 +36,14 @@ namespace AOC2023.Day09
 
                 var result = allDataSets.Last().Last() + allDataSets[^2].Last();
 
-                allDataSets.Last().Add(0);
-                allDataSets[^2].Add(result);
+                //allDataSets.Last().Add(0);
+                //allDataSets[^2].Add(result);
 
                 for (int i = allDataSets.Count - 3; i >= 0; i--)
                 {
                     var lastInSet = allDataSets[i].Last();
                     result = lastInSet + result;
-                    allDataSets[i].Add(result);
+                    //allDataSets[i].Add(result);
                 }
 
                 //foreach (var item in allDataSets)
