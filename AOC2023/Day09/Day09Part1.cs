@@ -48,7 +48,7 @@ namespace AOC2023.Day09
 
                 //foreach (var item in allDataSets)
                 //{
-                //    Console.WriteLine(string.Join(", ", item));
+                //    Console.WriteLine(string.Join(" ", item));
                 //}
 
                 sum += result;

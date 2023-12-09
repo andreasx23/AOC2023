@@ -48,7 +48,7 @@ namespace AOC2023.Day09
 
                 //foreach (var item in allDataSets)
                 //{
-                //    Console.WriteLine(string.Join(", ", item));
+                //    Console.WriteLine(string.Join(" ", item));
                 //}
 
                 sum += result;
@@ -78,7 +78,7 @@ namespace AOC2023.Day09
 
         public void ReadData()
         {
-            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test3" : "Data")}.txt");
+            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test2" : "Data")}.txt");
             _data = lines.Select(x => x.Split(' ').Select(x => long.Parse(x.Trim())).ToList()).ToList();
         }
     }
