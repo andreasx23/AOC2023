@@ -92,7 +92,8 @@ namespace AOC2023.Day10
             {
                 for (int j = 0; j < _data[i].Count; j++)
                 {
-                    if (_data[i][j] != FLOODFILL_CHAR && _data[i][j] != TILE_CHAR)
+                    var current = _data[i][j];
+                    if (current != FLOODFILL_CHAR && current != TILE_CHAR)
                     {
                         _data[i][j] = mapClone[i][j];
                     }
@@ -268,7 +269,7 @@ namespace AOC2023.Day10
                     break;
                 case TILE_CHAR: // . is ground; there is no pipe in this tile.
                     break;
-                case 'S': // S is the starting position of the animal; there is a pipe on this tile, but your sketch doesn't show what shape the pipe has.
+                case ANIMAL_START: // S is the starting position of the animal; there is a pipe on this tile, but your sketch doesn't show what shape the pipe has.
                     break;
                 case OVERWRITE_CHAR: // Custom icon used to overwrite fields on the 2D grid
                     break;
