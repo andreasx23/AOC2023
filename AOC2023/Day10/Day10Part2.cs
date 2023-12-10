@@ -10,8 +10,8 @@ namespace AOC2023.Day10
 {
     public class Day10Part2
     {
-        private static readonly bool _useTestData = true;
-        private const string TEST_DATA_NAME = "Test5";
+        private static readonly bool _useTestData = false;
+        private const string TEST_DATA_NAME = "Test6";
         private static readonly string _className = "Day10";
         private List<List<char>> _data = new();
         private const char ANIMAL_START = 'S';
@@ -19,11 +19,8 @@ namespace AOC2023.Day10
         private const char FLOODFILL_CHAR = ' ';
         private const char TILE_CHAR = '.';
 
-        // 667 to high
         public long Solve()
         {
-            var sum = 0L;
-
             HashSet<(int x, int y)> tiles = null;
             for (int i = 0; i < _data.Count; i++)
             {
@@ -64,7 +61,7 @@ namespace AOC2023.Day10
                 _data[item.x][item.y] = OVERWRITE_CHAR;
             }
 
-            // Convert junk to '.'
+            // Convert junk to tile
             for (int i = 0; i < _data.Count; i++)
             {
                 for (int j = 0; j < _data[i].Count; j++)
@@ -83,14 +80,14 @@ namespace AOC2023.Day10
                 FloodFill(i, _data[0].Count - 1);
             }
 
-            // Top down
+            // Top bottom
             for (int i = 0; i < _data[0].Count; i++)
             {
                 FloodFill(0, i);
                 FloodFill(_data.Count - 1, i);
             }
 
-            // Reset map without edges
+            // Reset map without edges and junk
             for (int i = 0; i < _data.Count; i++)
             {
                 for (int j = 0; j < _data[i].Count; j++)
@@ -105,29 +102,70 @@ namespace AOC2023.Day10
             // Center
             for (int i = 0; i < _data.Count; i++)
             {
+                var norths = 0;
                 for (int j = 0; j < _data[i].Count; j++)
                 {
-                    if (!tiles.Contains((i, j)))
+                    var current = _data[i][j];
+                    if (current == '|' || current == 'J' || current == 'L')
                     {
-                        // Found spot not a part of main loop
+                        norths++;
+                        continue;
+                    }
 
+                    if (current == TILE_CHAR && norths % 2 == 0)
+                    {
+                        _data[i][j] = FLOODFILL_CHAR;
                     }
                 }
+            }
+
+            //Print(true);
+
+            var sum = _data.Sum(x => x.Count(c => c == TILE_CHAR));
+
+            return sum;
+        }
+
+        private void Print(bool prettyPrint)
+        {
+            if (prettyPrint)
+            {
+                Console.OutputEncoding = Encoding.UTF8;
             }
 
             for (int i = 0; i < _data.Count; i++)
             {
-                Console.WriteLine(string.Join("", _data[i]));
-                for (int j = 0; j < _data[i].Count; j++)
+                if (prettyPrint)
                 {
-                    if (_data[i][j] != OVERWRITE_CHAR && _data[i][j] == TILE_CHAR)
+                    for (int j = 0; j < _data[i].Count; j++)
                     {
-                        sum++;
+                        var current = _data[i][j];
+                        switch (current)
+                        {
+                            case '|': // | is a vertical pipe connecting north and south.
+                                _data[i][j] = '│';
+                                break;
+                            case '-': // - is a horizontal pipe connecting east and west.
+                                _data[i][j] = '─';
+                                break;
+                            case 'L': // L is a 90-degree bend connecting north and east.
+                                _data[i][j] = '└';
+                                break;
+                            case 'J': // J is a 90-degree bend connecting north and west.
+                                _data[i][j] = '┘';
+                                break;
+                            case '7': // 7 is a 90-degree bend connecting south and west.
+                                _data[i][j] = '┐';
+                                break;
+                            case 'F': // F is a 90-degree bend connecting south and east.
+                                _data[i][j] = '┌';
+                                break;
+                        }
                     }
                 }
-            }
 
-            return sum;
+                Console.WriteLine(string.Join("", _data[i]));
+            }
         }
 
         private void FloodFill(int x, int y)
