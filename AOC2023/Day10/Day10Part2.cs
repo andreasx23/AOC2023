@@ -21,7 +21,7 @@ namespace AOC2023.Day10
 
         public long Solve()
         {
-            HashSet<(int x, int y)> tiles = null;
+            HashSet<(int x, int y)> pipes = null;
             for (int i = 0; i < _data.Count; i++)
             {
                 bool isFound = false;
@@ -40,7 +40,7 @@ namespace AOC2023.Day10
                             if (bfs >= currentMax)
                             {
                                 currentMax = bfs;
-                                tiles = new(seen);
+                                pipes = new(seen);
                             }
                         }
 
@@ -56,7 +56,7 @@ namespace AOC2023.Day10
             }
 
             var mapClone = _data.Select(x => x.ToList()).ToList();
-            foreach (var item in tiles)
+            foreach (var item in pipes)
             {
                 _data[item.x][item.y] = OVERWRITE_CHAR;
             }
@@ -111,8 +111,12 @@ namespace AOC2023.Day10
                         norths++;
                         continue;
                     }
+                    else if (current != TILE_CHAR)
+                    {
+                        continue;
+                    }
 
-                    if (current == TILE_CHAR && norths % 2 == 0)
+                    if (norths % 2 == 0)
                     {
                         _data[i][j] = FLOODFILL_CHAR;
                     }
@@ -121,7 +125,7 @@ namespace AOC2023.Day10
 
             //Print(true);
 
-            var sum = _data.Sum(x => x.Count(c => c == TILE_CHAR));
+            var sum = _data.Sum(row => row.Count(c => c == TILE_CHAR));
 
             return sum;
         }
