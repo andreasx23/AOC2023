@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,18 +11,79 @@ namespace AOC2023.Day11
 {
     public class Day11Part2
     {
+        class Galaxy
+        {
+            public int Id { get; set; }
+            public long X { get; set; }
+            public long Y { get; set; }
+        }
+
+        class HorizontalComparer : IComparer<Galaxy>
+        {
+            public int Compare(Galaxy x, Galaxy y)
+            {
+                return Math.Sign(x.X - y.X);
+            }
+        }
+
+        class VerticalComparer : IComparer<Galaxy>
+        {
+            public int Compare(Galaxy x, Galaxy y)
+            {
+                return Math.Sign(x.Y - y.Y);
+            }
+        }
+
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day11";
         private List<List<char>> _data = new();
         private const char GALAXY = '#';
-        private const char EMPTY_SPACE = '.';
 
         public long Solve(Stopwatch stopwatch)
         {
             var sum = 0L;
 
-            ExpandGalaxy(stopwatch);
             var galaxies = FindGalaxies();
+
+            long expansion = 1000000 - 1;
+
+            // Horizontal Expansion
+            galaxies.Sort(new HorizontalComparer());
+            long horizontalExpansion = 0;
+            long lastX = 0;
+            for (int i = 1; i < galaxies.Count; i++)
+            {
+                if (galaxies[i].X > lastX + 1)
+                {
+                    horizontalExpansion += Math.Clamp(galaxies[i].X - lastX - 1, 0, long.MaxValue) * expansion;
+                }
+
+                lastX = galaxies[i].X;
+                galaxies[i] = new Galaxy 
+                { 
+                    X = galaxies[i].X + horizontalExpansion, 
+                    Y = galaxies[i].Y 
+                };
+            }
+
+            // Vertical Expansion
+            galaxies.Sort(new VerticalComparer());
+            long verticalExpansion = 0;
+            long lastY = 0;
+            for (int i = 1; i < galaxies.Count; i++)
+            {
+                if (galaxies[i].Y > lastY + 1)
+                {
+                    verticalExpansion += Math.Clamp(galaxies[i].Y - lastY - 1, 0, long.MaxValue) * expansion;
+                }
+
+                lastY = galaxies[i].Y;
+                galaxies[i] = new Galaxy 
+                { 
+                    X = galaxies[i].X, 
+                    Y = galaxies[i].Y + verticalExpansion 
+                };
+            }
 
             for (int i = 0; i < galaxies.Count; i++)
             {
@@ -29,18 +91,19 @@ namespace AOC2023.Day11
                 for (int j = i + 1; j < galaxies.Count; j++)
                 {
                     var target = galaxies[j];
-                    sum += Math.Abs(current.x - target.x) + Math.Abs(current.y - target.y);
+                    sum += Math.Abs(current.X - target.X) + Math.Abs(current.Y - target.Y);
                 }
 
-                Console.WriteLine($"[{stopwatch.Elapsed}] Done with: {i + 1} / {galaxies.Count}");
+                //Console.WriteLine($"[{stopwatch.Elapsed}] Done with: {i + 1} / {galaxies.Count}");
             }
 
             return sum;
         }
 
-        private List<(int x, int y)> FindGalaxies()
+        private List<Galaxy> FindGalaxies()
         {
-            List<(int x, int y)> galaxies = new();
+            int id = 1;
+            List<Galaxy> galaxies = new();
             for (int i = 0; i < _data.Count; i++)
             {
                 for (int j = 0; j < _data[i].Count; j++)
@@ -48,78 +111,19 @@ namespace AOC2023.Day11
                     var current = _data[i][j];
                     if (current == GALAXY)
                     {
-                        galaxies.Add((i, j));
+                        galaxies.Add(new Galaxy()
+                        {
+                            Id = id,
+                            X = i,
+                            Y = j,
+                        });
+
+                        id++;
                     }
                 }
             }
 
             return galaxies;
-        }
-
-        private void ExpandGalaxy(Stopwatch stopwatch)
-        {
-            const int LENGTH = 1_000_000;
-
-            List<int> indexes = new List<int>();
-            for (int i = 0; i < _data.Count; i++)
-            {
-                var currentRow = _data[i];
-                if (currentRow.All(x => x == EMPTY_SPACE))
-                {
-                    indexes.Add(i + indexes.Count);
-                }
-            }
-
-            foreach (var item in indexes)
-            {
-                List<char> list = new List<char>();
-                for (int i = 0; i < LENGTH; i++)
-                {
-                    list.Add(EMPTY_SPACE);
-                }
-                _data.Insert(item, list);
-            }
-
-            for (int i = 0; i < _data.Count; i++)
-            {
-                for (int j = _data[i].Count; j < LENGTH; j++)
-                {
-                    _data[i].Add(EMPTY_SPACE);
-                }
-            }
-
-            indexes.Clear();
-            for (int j = 0; j < _data[0].Count; j++)
-            {
-                bool isAllEmptySpace = true;
-                for (int i = 0; i < _data.Count; i++)
-                {
-                    var current = _data[i][j];
-                    if (current != EMPTY_SPACE)
-                    {
-                        isAllEmptySpace = false;
-                        break;
-                    }
-                }
-
-                if (isAllEmptySpace)
-                {
-                    indexes.Add(j + indexes.Count);
-                }
-            }
-
-            for (int i = 0; i < indexes.Count; i++)
-            {
-                for (int j = 0; j < _data.Count; j++)
-                {
-                    _data[j].Insert(indexes[i], EMPTY_SPACE);
-                }
-
-                if ((i + 1) % 1000 == 0)
-                {
-                    Console.WriteLine($"[{stopwatch.Elapsed}] Done with: {i + 1} / {indexes.Count}");
-                }
-            }
         }
 
         public void Result()
