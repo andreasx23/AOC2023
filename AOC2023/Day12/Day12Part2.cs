@@ -12,107 +12,73 @@ namespace AOC2023.Day12
     {
         class Operation
         {
-            public List<char> Row { get; set; } = new();
+            public string Row { get; set; }
             public List<int> Requirements { get; set; } = new();
-
-            public string GetRowAsStr()
-            {
-                return new string(Row.ToArray());
-            }
-
-            public Operation Clone()
-            {
-                return new Operation()
-                {
-                    Row = new List<char>(Row),
-                    Requirements = Requirements
-                };
-            }
         }
 
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day12";
         private List<Operation> _data = new();
         private const char OPERATIONAL = '.';
         private const char BROKEN = '#';
         private const char UNKNOWN = '?';
-        private object _lock = new object();
-        private long _sum = 0;
+        private Dictionary<string, long> _cache = new();
 
         public long Solve(Stopwatch watch)
         {
-            Parallel.ForEach(_data, operation =>
-            {
-                Console.WriteLine($"[{watch.Elapsed}] running: {operation.GetRowAsStr()} {string.Join(", ", operation.Requirements)}");
-                GeneratePermutations(operation.Clone(), 0, 0);
-                Console.WriteLine($"[{watch.Elapsed}] done running: {operation.GetRowAsStr()}");
-            });
+            var operations = _data.First();
 
-            return _sum;
+            // 1024000 to low
+            long sum = 0;
+            foreach (var operation in _data)
+            {
+                //Console.WriteLine($"[{watch.Elapsed}] running: {operation.GetRowAsStr()} {string.Join(", ", operation.Requirements)}");
+                sum += FindArrangements(operations.Row, operations.Requirements);
+                //Console.WriteLine($"[{watch.Elapsed}] done running: {operation.GetRowAsStr()}");
+            }
+
+            return sum;
         }
 
-        private void GeneratePermutations(Operation operation, int index, int requirementIndex)
+        // https://github.com/bhosale-ajay/adventofcode/blob/master/2023/ts/D12.test.ts
+        public long FindArrangements(string conditions, List<int> requirements)
         {
-            if (index >= operation.Row.Count || requirementIndex >= operation.Requirements.Count)
+            if (string.IsNullOrEmpty(conditions))
             {
-                VerifyIfStringIsValid(operation);
-                return;
+                return requirements.Count == 0 ? 0 : 1;
+            }
+            if (requirements.Count == 0)
+            {
+                return conditions.Contains('#') ? 0 : 1;
             }
 
-            var currentChar = operation.Row[index];
-
-            if (currentChar == UNKNOWN)
+            var key = $"{conditions}-{string.Join(",", requirements)}";
+            if (_cache.ContainsKey(key))
             {
-                operation.Row[index] = OPERATIONAL;
-                GeneratePermutations(operation.Clone(), index + 1, requirementIndex);
-
-                operation.Row[index] = BROKEN;
-                GeneratePermutations(operation.Clone(), index + 1, requirementIndex);
+                return _cache[key];
             }
-            else
-            {
-                GeneratePermutations(operation, index + 1, requirementIndex);
-            }
-        }
 
-        private void VerifyIfStringIsValid(Operation operation)
-        {
-            var pointer = 0;
-            var requirement = operation.Requirements[pointer];
-            int cnt = 0;
-            var isValid = true;
-            foreach (var c in operation.Row)
+            long result = 0;
+            var condition = conditions[0];
+            if (condition == '.' || condition == '?')
             {
-                if (c == '#')
+                result += FindArrangements(conditions.Substring(1), requirements);
+            }
+
+            var firstReq = requirements[0];
+            var remainingReqs = requirements.Skip(1).ToList();
+            if (condition == '#' || condition == '?')
+            {
+                if (firstReq <= conditions.Length
+                    && !conditions.Substring(0, firstReq).Contains('.')
+                    && (firstReq == conditions.Length || conditions[firstReq] != '#'))
                 {
-                    cnt++;
-                }
-                else
-                {
-                    if (cnt > 0)
-                    {
-                        if (cnt == requirement)
-                        {
-                            cnt = 0;
-                            pointer++;
-                            requirement = pointer < operation.Requirements.Count ? operation.Requirements[pointer] : int.MaxValue;
-                        }
-                        else
-                        {
-                            isValid = false;
-                            break;
-                        }
-                    }
+                    result += FindArrangements(conditions.Substring(firstReq + 1), remainingReqs);
                 }
             }
 
-            if (isValid && ((pointer == operation.Requirements.Count && cnt == 0) || (pointer + 1 == operation.Requirements.Count && cnt == requirement)))
-            {
-                lock (_lock)
-                {
-                    _sum++;
-                }
-            }
+            _cache[key] = result;
+            return result;
         }
 
         public void Result()
@@ -125,7 +91,7 @@ namespace AOC2023.Day12
 
         public void ReadData()
         {
-            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test2" : "Data")}.txt");
+            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test3" : "Data")}.txt");
 
             foreach (var item in lines)
             {
@@ -153,7 +119,7 @@ namespace AOC2023.Day12
 
                 var operation = new Operation()
                 {
-                    Row = str.Select(x => x).ToList(),
+                    Row = str,
                     Requirements = reqs
                 };
                 _data.Add(operation);
