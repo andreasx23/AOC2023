@@ -36,7 +36,7 @@ namespace AOC2023.Day16
             for (int i = 0; i < _data.First().Count; i++)
             {
                 sum = Math.Max(sum, HandleDfs(0, i, Direction.DOWN));
-                sum = Math.Max(sum, HandleDfs(_data.Count - 1, _data.First().Count - 1, Direction.UP));
+                sum = Math.Max(sum, HandleDfs(_data.Count - 1, i, Direction.UP));
             }
 
             return sum;
