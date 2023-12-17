@@ -16,7 +16,7 @@ namespace AOC2023.Day12
             public List<int> Requirements { get; set; } = new();
         }
 
-        private static readonly bool _useTestData = false;
+        private static readonly bool _useTestData = true;
         private static readonly string _className = "Day12";
         private List<Operation> _data = new();
         private const char OPERATIONAL = '.';
@@ -32,21 +32,27 @@ namespace AOC2023.Day12
             long sum = 0;
             foreach (var operation in _data)
             {
-                //Console.WriteLine($"[{watch.Elapsed}] running: {operation.GetRowAsStr()} {string.Join(", ", operation.Requirements)}");
-                sum += FindArrangements(operations.Row, operations.Requirements);
-                //Console.WriteLine($"[{watch.Elapsed}] done running: {operation.GetRowAsStr()}");
+                Console.WriteLine($"[{watch.Elapsed}] running: {operation.Row} {string.Join(", ", operation.Requirements)}");
+                var localSum = FindArrangements(operations.Row, operations.Requirements);
+                Console.WriteLine($"[{watch.Elapsed}] done running: {operation.Row}");
+                Console.WriteLine($"Sum: {localSum}");
+                sum += localSum;
             }
 
             return sum;
         }
 
+        // Based on https://github.com/hyper-neutrino/advent-of-code/blob/main/2023/day12p2.py
+        // Explanation : https://www.youtube.com/watch?v=g3Ms5e7Jdqo
         // https://github.com/bhosale-ajay/adventofcode/blob/master/2023/ts/D12.test.ts
+
         public long FindArrangements(string conditions, List<int> requirements)
         {
             if (string.IsNullOrEmpty(conditions))
             {
                 return requirements.Count == 0 ? 0 : 1;
             }
+
             if (requirements.Count == 0)
             {
                 return conditions.Contains('#') ? 0 : 1;
@@ -91,7 +97,7 @@ namespace AOC2023.Day12
 
         public void ReadData()
         {
-            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test3" : "Data")}.txt");
+            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test" : "Data")}.txt");
 
             foreach (var item in lines)
             {
