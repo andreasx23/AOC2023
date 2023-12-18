@@ -266,7 +266,7 @@ namespace AOC2023.Day14
 
         public void ReadData()
         {
-            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test" : "Data")}.txt");
+            var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test" : "Data2")}.txt");
             _data = lines.Select(x => x.ToList()).ToList();
         }
     }
