@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AOC2023.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -27,34 +28,11 @@ namespace AOC2023.Day18
             double sum = 0;
 
             var (corners, perimeter) = Generate();
-            var area = CalculatePolygonArea(corners);
-            var interior = area - perimeter / 2 + 1;
+            var area = corners.Shoelace();
+            var interior = area.PicksTheorem(perimeter);
             sum = interior + perimeter;
             
             return sum;
-        }
-
-        public long CalculatePolygonArea(List<(int x, int y)> corners)
-        {
-            // Add the first point to the end of the list
-            corners.Add(corners[0]);
-
-            // Initialize the area
-            long area = 0;
-
-            // Iterate over the coordinates
-            for (int i = 0; i < corners.Count - 1; i++)
-            {
-                // Calculate the area of the trapezoid formed by the x-axis and the line between the points
-                //area += (corners[i + 1].x - corners[i].x) * (corners[i + 1].y + corners[i].y) / 2.0;
-
-                var a = corners[i];
-                var b = corners[(i + 1) % corners.Count];
-                area += ((long)b.x + a.x) * ((long)b.y - a.y);
-            }
-
-            // Return the absolute value of the area
-            return Math.Abs(area / 2L);
         }
 
         private (List<(int x, int y)> corners, long perimeter) Generate()
