@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,193 +22,70 @@ namespace AOC2023.Day18
         private static readonly string _className = "Day18";
         private List<Plan> _data = new();
 
-        // Not solved
-        public long Solve(Stopwatch watch)
+        // https://github.com/tmbarker/advent-of-code/blob/main/Solutions/Y2023/D18/Solution.cs
+        // To low: 17881747979
+        public double Solve(Stopwatch watch)
         {
-            long sum = 0;
+            double sum = 0;
 
-            var grid = GenerateGrid();
-
-            //Print(grid);
-
-            for (int i = 0; i < grid.Count; i++)
-            {
-                bool found = false;
-                for (int j = 0; j < grid[i].Count; j++)
-                {
-                    if (grid[i][j] == '#')
-                    {
-                        Bfs(i + 1, j + 1, grid);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    break;
-                }
-            }
-
-            sum = grid.Sum(row => row.Count(c => c == '#'));
-
+            var (corners, perimeter) = Generate();
+            double area = CalculatePolygonArea(corners);
+            var interior = area - perimeter / 2 + 1;
+            sum = interior + perimeter;
+            
             return sum;
         }
 
-        private void Bfs(int x, int y, List<List<char>> grid)
+        public double CalculatePolygonArea(List<(int x, int y)> corners)
         {
-            Queue<(int x, int y)> queue = new();
-            HashSet<(int x, int y)> seen = new();
+            // Add the first point to the end of the list
+            corners.Add(corners[0]);
 
-            queue.Enqueue((x, y));
-            seen.Add((x, y));
+            // Initialize the area
+            double area = 0;
 
-            while (queue.Any())
+            // Iterate over the coordinates
+            for (int i = 0; i < corners.Count - 1; i++)
             {
-                var current = queue.Dequeue();
-                grid[current.x][current.y] = '#';
-
-                foreach (var item in GetNeighbours(current.x, current.y, grid))
-                {
-                    if (seen.Add(item))
-                    {
-                        queue.Enqueue(item);
-                    }
-                }
+                // Calculate the area of the trapezoid formed by the x-axis and the line between the points
+                area += (corners[i + 1].x - corners[i].x) * (corners[i + 1].y + corners[i].y) / 2.0;
             }
+
+            // Return the absolute value of the area
+            return Math.Abs(area);
         }
 
-        private List<(int x, int y)> GetNeighbours(int x, int y, List<List<char>> grid)
+        private (List<(int x, int y)> corners, long perimeter) Generate()
         {
-            List<(int x, int y)> dirs = new()
-            {
-                (0, 1),
-                (0, -1),
-                (1, 0),
-                (-1, 0),
-            };
-
-            List<(int x, int y)> validDirs = new();
-            foreach (var item in dirs)
-            {
-                var dx = x + item.x;
-                var dy = y + item.y;
-                if (x < 0 || x >= grid.Count || y < 0 || y >= grid[x].Count || grid[dx][dy] == '#')
-                {
-                    continue;
-                }
-
-                validDirs.Add((dx, dy));
-            }
-
-            return validDirs;
-        }
-
-        private void Print(List<List<char>> grid)
-        {
-            foreach (var item in grid)
-            {
-                Console.WriteLine(string.Join("", item));
-            }
-        }
-
-        private List<List<char>> GenerateGrid()
-        {
-            List<List<char>> grid = new();
-            var rights = _data.Sum(c =>
-            {
-                return c.Direction == "R" || c.Direction == "L" ? c.Number : 0;
-            });
-
-            var down = _data.Sum(c =>
-            {
-                return c.Direction == "D" || c.Direction == "U" ? c.Number : 0;
-            });
-
-            for (int i = 0; i < rights; i++)
-            {
-                grid.Add(new List<char>(down));
-                for (int j = 0; j < down; j++)
-                {
-                    grid[i].Add(' ');
-                }
-            }
-
-            int indexI = grid.Count / 2;
-            int indexJ = grid.First().Count / 2;
+            List<(int x, int y)> corners = new();
+            int x = 0;
+            int y = 0;
+            long perimeter = 0L;
             foreach (var plan in _data)
             {
-                for (int i = 0; i < plan.Number; i++)
+                corners.Add((x, y));
+                perimeter += plan.Number;
+
+                switch (plan.Direction)
                 {
-                    grid[indexI][indexJ] = '#';
-                    switch (plan.Direction)
-                    {
-                        case "R":
-                            indexJ++;
-                            break;
-                        case "L":
-                            indexJ--;
-                            break;
-                        case "U":
-                            indexI--;
-                            break;
-                        case "D":
-                            indexI++;
-                            break;
-                        default:
-                            throw new Exception();
-                    }
-                }
-            }
-
-            TruncateGrid(grid);
-
-            return grid;
-        }
-
-        private static void TruncateGrid(List<List<char>> grid)
-        {
-            List<int> indexes = new List<int>();
-            for (int i = 0; i < grid.Count; i++)
-            {
-                var current = grid[i];
-                if (current.All(c => c == ' '))
-                {
-                    indexes.Add(i - indexes.Count);
-                }
-            }
-
-            foreach (var item in indexes)
-            {
-                grid.RemoveAt(item);
-            }
-
-            indexes.Clear();
-            for (int i = 0; i < grid.First().Count; i++)
-            {
-                bool found = true;
-                for (int j = 0; j < grid.Count; j++)
-                {
-                    if (grid[j][i] == '#')
-                    {
-                        found = false;
+                    case "R":
+                        y += plan.Number;
                         break;
-                    }
-                }
-
-                if (found)
-                {
-                    indexes.Add(i - indexes.Count);
-                }
-            }
-
-            foreach (var item in indexes)
-            {
-                for (int i = 0; i < grid.Count; i++)
-                {
-                    grid[i].RemoveAt(item);
+                    case "L":
+                        y -= plan.Number;
+                        break;
+                    case "U":
+                        x -= plan.Number;
+                        break;
+                    case "D":
+                        x += plan.Number;
+                        break;
+                    default:
+                        throw new Exception();
                 }
             }
+
+            return (corners, perimeter);
         }
 
         public void Result()
@@ -237,7 +115,8 @@ namespace AOC2023.Day18
                     _ => throw new Exception(),
                 };
 
-                number = Convert.ToInt32(code[1..^1], 16);
+                var temp = code[1..^1];
+                number = Convert.ToInt32(temp, 16);
 
                 _data.Add(new Plan
                 {
