@@ -21,29 +21,36 @@ namespace AOC2023.Day14
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day14";
         private List<List<char>> _data = new();
-        private Dictionary<string, List<List<char>>> _cache = new();
+        private Dictionary<string, (List<List<char>> data, int index)> _cache = new();
 
         public long Solve(Stopwatch watch)
         {
             long sum = 0;
 
             var cycles = 1000000000;
-            bool firstCacheHit = true;
+            var cycleIndex = 0;
+            bool cycleFound = false;
             for (int i = 0; i < cycles; i++)
             {
                 var key = GetKey();
                 if (_cache.TryGetValue(key, out var value))
                 {
-                    if (firstCacheHit)
+                    if (cycleIndex == 0)
                     {
-                        var cyclesLeft = cycles % _cache.Count;
-                        i = cycles - cyclesLeft;
-                        firstCacheHit = false;
+                        cycleIndex = value.index;
+                    }
+                    else
+                    {
+                        if (cycleIndex == value.index && !cycleFound)
+                        {
+                            var cycle = i - cycleIndex;
+                            i = (cycles - i) % cycle;
+                            i = cycles - i;
+                            cycleFound = true;
+                        }
                     }
 
-                    sum = Math.Max(sum, Sum());
-
-                    _data = value;
+                    _data = value.data;
                     continue;
                 }
 
@@ -52,8 +59,10 @@ namespace AOC2023.Day14
                 Tilt(Direction.DOWN);
                 Tilt(Direction.RIGHT);
 
-                _cache[key] = Clone();
+                _cache[key] = (Clone(), i);
             }
+
+            sum = Sum();
 
             return sum;
         }
