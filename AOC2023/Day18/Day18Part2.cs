@@ -18,41 +18,43 @@ namespace AOC2023.Day18
             public string Code { get; set; }
         }
 
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day18";
         private List<Plan> _data = new();
 
-        // https://github.com/tmbarker/advent-of-code/blob/main/Solutions/Y2023/D18/Solution.cs
-        // To low: 17881747979
         public double Solve(Stopwatch watch)
         {
             double sum = 0;
 
             var (corners, perimeter) = Generate();
-            double area = CalculatePolygonArea(corners);
+            var area = CalculatePolygonArea(corners);
             var interior = area - perimeter / 2 + 1;
             sum = interior + perimeter;
             
             return sum;
         }
 
-        public double CalculatePolygonArea(List<(int x, int y)> corners)
+        public long CalculatePolygonArea(List<(int x, int y)> corners)
         {
             // Add the first point to the end of the list
             corners.Add(corners[0]);
 
             // Initialize the area
-            double area = 0;
+            long area = 0;
 
             // Iterate over the coordinates
             for (int i = 0; i < corners.Count - 1; i++)
             {
                 // Calculate the area of the trapezoid formed by the x-axis and the line between the points
-                area += (corners[i + 1].x - corners[i].x) * (corners[i + 1].y + corners[i].y) / 2.0;
+                //area += (corners[i + 1].x - corners[i].x) * (corners[i + 1].y + corners[i].y) / 2.0;
+
+                var a = corners[i];
+                var b = corners[(i + 1) % corners.Count];
+                area += ((long)b.x + a.x) * ((long)b.y - a.y);
             }
 
             // Return the absolute value of the area
-            return Math.Abs(area);
+            return Math.Abs(area / 2L);
         }
 
         private (List<(int x, int y)> corners, long perimeter) Generate()
@@ -99,8 +101,9 @@ namespace AOC2023.Day18
         public void ReadData()
         {
             var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test" : "Data")}.txt");
-            foreach (var item in lines)
+            for (int i = 0; i < lines.Length; i++)
             {
+                string item = lines[i];
                 var split = item.Split(' ');
                 var direction = split[0];
                 var number = int.Parse(split[1]);
