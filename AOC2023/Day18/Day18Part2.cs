@@ -116,13 +116,13 @@ namespace AOC2023.Day18
             List<List<char>> grid = new();
             var rights = _data.Sum(c =>
             {
-                return c.Direction == "R" ? c.Number : 0;
-            }) * 2;
+                return c.Direction == "R" || c.Direction == "L" ? c.Number : 0;
+            });
 
             var down = _data.Sum(c =>
             {
-                return c.Direction == "D" ? c.Number : 0;
-            }) * 2;
+                return c.Direction == "D" || c.Direction == "U" ? c.Number : 0;
+            });
 
             for (int i = 0; i < rights; i++)
             {
