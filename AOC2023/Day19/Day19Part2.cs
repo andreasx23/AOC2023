@@ -92,7 +92,6 @@ namespace AOC2023.Day19
                         if (rule.IsSpecialRule)
                         {
                             queue.Enqueue((rule.SendTo, xl, xh, ml, mh, al, ah, sl, sh));
-                            break;
                         }
                         else
                         {
@@ -100,42 +99,34 @@ namespace AOC2023.Day19
                             {
                                 case "x":
                                     {
-                                        var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, xl, xh);
-                                        queue.Enqueue((rule.SendTo, min, max, ml, mh, al, ah, sl, sh));
+                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, xl, xh);
+                                        queue.Enqueue((rule.SendTo, low, high, ml, mh, al, ah, sl, sh));
 
-                                        (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh);
-                                        xl = min;
-                                        xh = max;
+                                        (xl, xh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh);
                                     }
                                     break;
                                 case "m":
                                     {
-                                        var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, ml, mh);
-                                        queue.Enqueue((rule.SendTo, xl, xh, min, max, al, ah, sl, sh));
+                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, ml, mh);
+                                        queue.Enqueue((rule.SendTo, xl, xh, low, high, al, ah, sl, sh));
 
-                                        (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, ml, mh);
-                                        ml = min;
-                                        mh = max;
+                                        (ml, mh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, ml, mh);
                                     }
                                     break;
                                 case "a":
                                     {
-                                        var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, al, ah);
-                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, min, max, sl, sh));
+                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, al, ah);
+                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, low, high, sl, sh));
 
-                                        (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, al, ah);
-                                        al = min;
-                                        ah = max;
+                                        (al, ah) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, al, ah);
                                     }
                                     break;
                                 case "s":
                                     {
-                                        var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, sl, sh);
-                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, sl, sh, min, max));
+                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, sl, sh);
+                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, sl, sh, low, high));
 
-                                        (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, sl, sh);
-                                        sl = min;
-                                        sh = max;
+                                        (sl, sh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, sl, sh);
                                     }
                                     break;
                                 default:
@@ -149,7 +140,7 @@ namespace AOC2023.Day19
             return sum;
         }
 
-        private (long min, long max) CalculateMinMax(string @operator, int amount, long low, long high)
+        private (long low, long high) CalculateLowAndHigh(string @operator, int amount, long low, long high)
         {
             switch (@operator)
             {
