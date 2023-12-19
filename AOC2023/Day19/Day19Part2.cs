@@ -82,12 +82,13 @@ namespace AOC2023.Day19
                         if (rule.IsSpecialRule)
                         {
                             queue.Enqueue((rule.SendTo, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh));
+                            break;
                         }
                         else
                         {
-                            var ranges = CaLowculateRanges(rule.Name, rule.Operator, rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
+                            var ranges = CalculateRanges(rule.Name, rule.Operator, rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
                             queue.Enqueue((rule.SendTo, ranges.xLow, ranges.xHigh, ranges.mLow, ranges.mHigh, ranges.aLow, ranges.aHigh, ranges.sLow, ranges.sHigh));
-                            (xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh) = CaLowculateRanges(rule.Name, rule.Operator == ">" ? "<=" : ">=", rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
+                            (xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh) = CalculateRanges(rule.Name, rule.Operator == ">" ? "<=" : ">=", rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
                         }
                     }
                 }
@@ -96,21 +97,21 @@ namespace AOC2023.Day19
             return sum;
         }
 
-        private (long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh) CaLowculateRanges(string name, string @operator, int amount, long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh)
+        private (long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh) CalculateRanges(string name, string @operator, int amount, long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh)
         {
             switch (name)
             {
                 case "x":
-                    (xLow, xHigh) = CaLowculateLowAndHigh(@operator, amount, xLow, xHigh);
+                    (xLow, xHigh) = CalculateLowAndHigh(@operator, amount, xLow, xHigh);
                     break;
                 case "m":
-                    (mLow, mHigh) = CaLowculateLowAndHigh(@operator, amount, mLow, mHigh);
+                    (mLow, mHigh) = CalculateLowAndHigh(@operator, amount, mLow, mHigh);
                     break;
                 case "a":
-                    (aLow, aHigh) = CaLowculateLowAndHigh(@operator, amount, aLow, aHigh);
+                    (aLow, aHigh) = CalculateLowAndHigh(@operator, amount, aLow, aHigh);
                     break;
                 case "s":
-                    (sLow, sHigh) = CaLowculateLowAndHigh(@operator, amount, sLow, sHigh);
+                    (sLow, sHigh) = CalculateLowAndHigh(@operator, amount, sLow, sHigh);
                     break;
                 default:
                     throw new Exception();
@@ -119,7 +120,7 @@ namespace AOC2023.Day19
             return (xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
         }
 
-        private (long low, long high) CaLowculateLowAndHigh(string @operator, int amount, long low, long high)
+        private (long low, long high) CalculateLowAndHigh(string @operator, int amount, long low, long high)
         {
             switch (@operator)
             {
@@ -161,15 +162,6 @@ namespace AOC2023.Day19
                 if (item.StartsWith("{"))
                 {
                     break;
-                    //var split = item[1..^1].Split(',').Select(row => int.Parse(row.Split('=').Last().Trim())).ToList();
-                    //_parts.Add(new Part()
-                    //{
-                    //    Name = item,
-                    //    ExtremelyGoodLooking = split[0],
-                    //    MusicaLow = split[1],
-                    //    Aerodynamic = split[2],
-                    //    sHighiny = split[3]
-                    //});
                 }
                 else
                 {
