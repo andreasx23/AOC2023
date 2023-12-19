@@ -26,14 +26,36 @@ namespace AOC2023.Day19
             public string Name { get; set; } // x
             public string SendTo { get; set; } // one
 
+            public int Min { get; set; }
+            public int Max { get; set; }
+
             public bool IsSpecialRule => string.IsNullOrEmpty(Operator);
             public bool IsAccepted => IsSpecialRule && Name == "A"; // A = Accepted, R = Rejected
             public bool IsRejected => IsSpecialRule && Name == "R"; // A = Accepted, R = Rejected
             public bool IsGreaterThanOperator => !string.IsNullOrEmpty(Operator) && Operator == ">";
 
+            public void SetupRange()
+            {
+                if (IsSpecialRule)
+                {
+                    return;
+                }
+
+                if (Operator == ">")
+                {
+                    Min = Amount;
+                    Max = 4000;
+                }
+                else
+                {
+                    Min = 0;
+                    Max = Amount;
+                }
+            }
+
             public bool CheckIfValid(int partAmount)
             {
-                return IsGreaterThanOperator ? Amount < partAmount : Amount > partAmount;
+                return Min <= partAmount && partAmount <= Max;
             }
         }
 
@@ -47,7 +69,7 @@ namespace AOC2023.Day19
             public int Score => ExtremelyGoodLooking + Musical + Aerodynamic + Shiny;
         }
 
-        private static readonly bool _useTestData = false;
+        private static readonly bool _useTestData = true;
         private static readonly string _className = "Day19";
         private Dictionary<string, Workflow> _workflows = new();
         private List<Part> _parts = new();
@@ -60,7 +82,7 @@ namespace AOC2023.Day19
 
             object @lock = new();
             long count = 0;
-            long batchMax = 1_000_000;
+            long batchMax = 10000;
             long total = 4000L * 4000L * 4000L * 4000L;
             for (int x = 1; x <= 4000; x++)
             {
@@ -93,7 +115,7 @@ namespace AOC2023.Day19
                                     }
                                 });
 
-                                Console.WriteLine($"[{watch.Elapsed}] Current sum: {sum}");
+                                //Console.WriteLine($"[{watch.Elapsed}] Current sum: {sum}");
 
                                 _parts.Clear();
                             }
@@ -107,8 +129,6 @@ namespace AOC2023.Day19
 
         private long VerifyPart(Part part)
         {
-            //Console.WriteLine($"Attempting part: {part.Name}");
-
             var workflow = _workflows[START_WORKFLOW];
             bool isDone = false;
             while (!isDone)
@@ -214,7 +234,7 @@ namespace AOC2023.Day19
 
                     foreach (var ruleStr in rules)
                     {
-                        var rule = new Rule
+                        var rule = new Rule()
                         {
                             RuleStr = ruleStr
                         };
@@ -251,6 +271,8 @@ namespace AOC2023.Day19
                             rule.Name = ruleStr;
                             rule.SendTo = ruleStr;
                         }
+
+                        rule.SetupRange();
 
                         workflow.Rules.Add(rule);
                     }
