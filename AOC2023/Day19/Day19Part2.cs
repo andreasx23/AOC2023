@@ -15,6 +15,7 @@ namespace AOC2023.Day19
         class Workflow
         {
             public string Name { get; set; } // E.g. Name = in
+            public string FullName { get; set; } // E.g. Name = in
             public List<Rule> Rules { get; set; } = new();
         }
 
@@ -82,7 +83,6 @@ namespace AOC2023.Day19
         private static readonly bool _useTestData = true;
         private static readonly string _className = "Day19";
         private Dictionary<string, Workflow> _workflows = new();
-        private List<Part> _parts = new();
 
         private const string START_WORKFLOW = "in";
 
@@ -90,7 +90,8 @@ namespace AOC2023.Day19
         {
             long sum = 0;
 
-            sum = Bfs();
+            sum = Test();
+            Console.WriteLine(Bfs());
 
             return sum;
         }
@@ -100,7 +101,125 @@ namespace AOC2023.Day19
         // 2073604890
         // 1410324064
         // 376801888
+        // 1743374336
+        // -8383445120
+        // 1039244853168000
+        // 128299639868000
         // 167409079868000
+        private long Test()
+        {
+            Queue<(string, int, int, int, int, int, int, int, int)> queue = new();
+            queue.Enqueue(("in", 1, 4000, 1, 4000, 1, 4000, 1, 4000));
+
+            long ans = 0;
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                var key = current.Item1;
+                var xl = current.Item2;
+                var xh = current.Item3;
+                var ml = current.Item4;
+                var mh = current.Item5;
+                var al = current.Item6;
+                var ah = current.Item7;
+                var sl = current.Item8;
+                var sh = current.Item9;
+
+                if (xl > xh || ml > mh || al > ah || sl > sh)
+                {
+                    continue;
+                }
+                else if (key == "A")
+                {
+                    long s1 = xh - xl + 1;
+                    long s2 = mh - ml + 1;
+                    long s3 = ah - al + 1;
+                    long s4 = sh - sl + 1;
+                    ans += s1 * s2 * s3 * s4;
+                    continue;
+                }
+                else if (key == "R")
+                {
+                    continue;
+                }
+                else
+                {
+                    var workflow = _workflows[key];
+                    foreach (var rule in workflow.FullName[(workflow.Name.Length + 1)..^1].Split(','))
+                    {
+                        var name = rule;
+                        if (rule.Contains(':'))
+                        {
+                            var parts = rule.Split(':');
+                            name = parts.Last();
+                            var cond = parts[0];
+                            var var = cond[0].ToString();
+                            var op = cond[1].ToString();
+                            var n = int.Parse(cond[2..]);
+
+                            queue.Enqueue((name, xl, xh, ml, mh, al, ah, sl, sh));
+                            (xl, xh, ml, mh, al, ah, sl, sh) = NewRanges(var, op == ">" ? "<=" : ">=", n, xl, xh, ml, mh, al, ah, sl, sh);
+                        }
+                        else
+                        {
+                            queue.Enqueue((name, xl, xh, ml, mh, al, ah, sl, sh));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return ans;
+        }
+
+        public static (int, int, int, int, int, int, int, int) NewRanges(string var, string op, int n, int xl, int xh, int ml, int mh, int al, int ah, int sl, int sh)
+        {
+            if (var == "x")
+            {
+                (xl, xh) = NewRange(op, n, xl, xh);
+            }
+            else if (var == "m")
+            {
+                (ml, mh) = NewRange(op, n, ml, mh);
+            }
+            else if (var == "a")
+            {
+                (al, ah) = NewRange(op, n, al, ah);
+            }
+            else if (var == "s")
+            {
+                (sl, sh) = NewRange(op, n, sl, sh);
+            }
+
+            return (xl, xh, ml, mh, al, ah, sl, sh);
+        }
+
+        public static (int, int) NewRange(string op, int n, int lo, int hi)
+        {
+            if (op == ">")
+            {
+                lo = Math.Max(lo, n + 1);
+            }
+            else if (op == "<")
+            {
+                hi = Math.Min(hi, n - 1);
+            }
+            else if (op == ">=")
+            {
+                lo = Math.Max(lo, n);
+            }
+            else if (op == "<=")
+            {
+                hi = Math.Min(hi, n);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid operation");
+            }
+
+            return (lo, hi);
+        }
+
         private long Bfs()
         {
             Queue<(string workFlowName, int xl, int xh, int ml, int mh, int al, int ah, int sl, int sh)> queue = new();
@@ -117,10 +236,11 @@ namespace AOC2023.Day19
                 }
                 else if (workFlowName == "A")
                 {
-                    sum += (xh - xl + 1)
-                           * (mh - ml + 1)
-                           * (ah - al + 1)
-                           * (sh - sl + 1);
+                    long s1 = xh - xl + 1;
+                    long s2 = mh - ml + 1;
+                    long s3 = ah - al + 1;
+                    long s4 = sh - sl + 1;
+                    sum += s1 * s2 * s3 * s4;
                     continue;
                 }
                 else if (workFlowName == "R")
@@ -135,6 +255,7 @@ namespace AOC2023.Day19
                         if (rule.IsSpecialRule)
                         {
                             queue.Enqueue((rule.SendTo, xl, xh, ml, mh, al, ah, sl, sh));
+                            break;
                         }
                         else
                         {
@@ -149,26 +270,8 @@ namespace AOC2023.Day19
                                         xl = min;
                                         xh = max;
                                     }
-                                    //if (rule.CheckIfValid(xl, xh))
-                                    //{
-                                    //    var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, xl, xh);
-                                    //    queue.Enqueue((rule.SendTo, min, max, ml, mh, al, ah, sl, sh));
-
-                                    //    (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh);
-                                    //    xl = min;
-                                    //    xh = max;
-                                    //}
                                     break;
                                 case "m":
-                                    //if (rule.CheckIfValid(ml, mh))
-                                    //{
-                                    //    var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, ml, mh);
-                                    //    queue.Enqueue((rule.SendTo, xl, xh, min, max, al, ah, sl, sh));
-
-                                    //    (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, ml, mh);
-                                    //    ml = min;
-                                    //    mh = max;
-                                    //}
                                     {
                                         var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, ml, mh);
                                         queue.Enqueue((rule.SendTo, xl, xh, min, max, al, ah, sl, sh));
@@ -179,15 +282,6 @@ namespace AOC2023.Day19
                                     }
                                     break;
                                 case "a":
-                                    //if (rule.CheckIfValid(al, ah))
-                                    //{
-                                    //    var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, al, ah);
-                                    //    queue.Enqueue((rule.SendTo, xl, xh, ml, mh, min, max, sl, sh));
-
-                                    //    (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, al, ah);
-                                    //    al = min;
-                                    //    ah = max;
-                                    //}
                                     {
                                         var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, al, ah);
                                         queue.Enqueue((rule.SendTo, xl, xh, ml, mh, min, max, sl, sh));
@@ -198,15 +292,6 @@ namespace AOC2023.Day19
                                     }
                                     break;
                                 case "s":
-                                    //if (rule.CheckIfValid(sl, sh))
-                                    //{
-                                    //    var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, sl, sh);
-                                    //    queue.Enqueue((rule.SendTo, xl, xh, ml, mh, sl, sh, min, max));
-
-                                    //    (min, max) = CalculateMinMax(rule.Operator == ">" ? "<=" : ">=", rule.Amount, sl, sh);
-                                    //    sl = min;
-                                    //    sh = max;
-                                    //}
                                     {
                                         var (min, max) = CalculateMinMax(rule.Operator, rule.Amount, sl, sh);
                                         queue.Enqueue((rule.SendTo, xl, xh, ml, mh, sl, sh, min, max));
@@ -227,25 +312,25 @@ namespace AOC2023.Day19
             return sum;
         }
 
-        private (int min, int max) CalculateMinMax(string @operator, int amount, int min, int max)
+        private (int min, int max) CalculateMinMax(string @operator, int amount, int low, int high)
         {
             switch (@operator)
             {
                 case ">":
-                    min = Math.Max(min, amount + 1);
+                    low = Math.Max(low, amount + 1);
                     break;
                 case "<":
-                    max = Math.Min(max, amount - 1);
+                    high = Math.Min(high, amount - 1);
                     break;
                 case ">=":
-                    min = Math.Max(min, amount);
+                    low = Math.Max(low, amount);
                     break;
                 case "<=":
-                    max = Math.Min(max, amount);
+                    high = Math.Min(high, amount);
                     break;
             }
 
-            return (min, max);
+            return (low, high);
         }
 
         public void Result()
@@ -286,7 +371,8 @@ namespace AOC2023.Day19
                     var rules = split[1][0..^1].Split(',');
                     Workflow workflow = new Workflow()
                     {
-                        Name = name
+                        Name = name,
+                        FullName = item
                     };
 
                     foreach (var ruleStr in rules)
