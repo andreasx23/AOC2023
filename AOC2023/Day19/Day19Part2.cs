@@ -35,6 +35,8 @@ namespace AOC2023.Day19
         private Dictionary<string, Workflow> _workflows = new();
 
         private const string START_WORKFLOW = "in";
+        private const string ACCEPTED = "A";
+        private const string REJECTED = "R";
 
         public long Solve(Stopwatch watch)
         {
@@ -47,28 +49,28 @@ namespace AOC2023.Day19
 
         private long Bfs()
         {
-            Queue<(string workFlowName, long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh)> queue = new();
+            Queue<(string workFlowName, long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh)> queue = new();
             queue.Enqueue((START_WORKFLOW, 1, 4000, 1, 4000, 1, 4000, 1, 4000));
 
             long sum = 0;
             while (queue.Count > 0)
             {
-                var (workFlowName, xl, xh, ml, mh, al, ah, sl, sh) = queue.Dequeue();
+                var (workFlowName, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh) = queue.Dequeue();
 
-                if (xl > xh || ml > mh || al > ah || sl > sh)
+                if (xLow > xHigh || mLow > mHigh || aLow > aHigh || sLow > sHigh)
                 {
                     continue;
                 }
-                else if (workFlowName == "A")
+                else if (workFlowName == ACCEPTED)
                 {
-                    long s1 = xh - xl + 1;
-                    long s2 = mh - ml + 1;
-                    long s3 = ah - al + 1;
-                    long s4 = sh - sl + 1;
-                    sum += s1 * s2 * s3 * s4;
+                    long xScore = xHigh - xLow + 1;
+                    long mScore = mHigh - mLow + 1;
+                    long aScore = aHigh - aLow + 1;
+                    long hScore = sHigh - sLow + 1;
+                    sum += xScore * mScore * aScore * hScore;
                     continue;
                 }
-                else if (workFlowName == "R")
+                else if (workFlowName == REJECTED)
                 {
                     continue;
                 }
@@ -79,13 +81,13 @@ namespace AOC2023.Day19
                     {
                         if (rule.IsSpecialRule)
                         {
-                            queue.Enqueue((rule.SendTo, xl, xh, ml, mh, al, ah, sl, sh));
+                            queue.Enqueue((rule.SendTo, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh));
                         }
                         else
                         {
-                            var ranges = CalculateRanges(rule.Name, rule.Operator, rule.Amount, xl, xh, ml, mh, al, ah, sl, sh);
-                            queue.Enqueue((rule.SendTo, ranges.xl, ranges.xh, ranges.ml, ranges.mh, ranges.al, ranges.ah, ranges.sl, ranges.sh));
-                            (xl, xh, ml, mh, al, ah, sl, sh) = CalculateRanges(rule.Name, rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh, ml, mh, al, ah, sl, sh);
+                            var ranges = CaLowculateRanges(rule.Name, rule.Operator, rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
+                            queue.Enqueue((rule.SendTo, ranges.xLow, ranges.xHigh, ranges.mLow, ranges.mHigh, ranges.aLow, ranges.aHigh, ranges.sLow, ranges.sHigh));
+                            (xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh) = CaLowculateRanges(rule.Name, rule.Operator == ">" ? "<=" : ">=", rule.Amount, xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
                         }
                     }
                 }
@@ -94,30 +96,30 @@ namespace AOC2023.Day19
             return sum;
         }
 
-        private (long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh) CalculateRanges(string name, string @operator, int amount, long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh)
+        private (long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh) CaLowculateRanges(string name, string @operator, int amount, long xLow, long xHigh, long mLow, long mHigh, long aLow, long aHigh, long sLow, long sHigh)
         {
             switch (name)
             {
                 case "x":
-                    (xl, xh) = CalculateLowAndHigh(@operator, amount, xl, xh);
+                    (xLow, xHigh) = CaLowculateLowAndHigh(@operator, amount, xLow, xHigh);
                     break;
                 case "m":
-                    (ml, mh) = CalculateLowAndHigh(@operator, amount, ml, mh);
+                    (mLow, mHigh) = CaLowculateLowAndHigh(@operator, amount, mLow, mHigh);
                     break;
                 case "a":
-                    (al, ah) = CalculateLowAndHigh(@operator, amount, al, ah);
+                    (aLow, aHigh) = CaLowculateLowAndHigh(@operator, amount, aLow, aHigh);
                     break;
                 case "s":
-                    (sl, sh) = CalculateLowAndHigh(@operator, amount, sl, sh);
+                    (sLow, sHigh) = CaLowculateLowAndHigh(@operator, amount, sLow, sHigh);
                     break;
                 default:
                     throw new Exception();
             }
 
-            return (xl, xh, ml, mh, al, ah, sl, sh);
+            return (xLow, xHigh, mLow, mHigh, aLow, aHigh, sLow, sHigh);
         }
 
-        private (long low, long high) CalculateLowAndHigh(string @operator, int amount, long low, long high)
+        private (long low, long high) CaLowculateLowAndHigh(string @operator, int amount, long low, long high)
         {
             switch (@operator)
             {
@@ -164,9 +166,9 @@ namespace AOC2023.Day19
                     //{
                     //    Name = item,
                     //    ExtremelyGoodLooking = split[0],
-                    //    Musical = split[1],
+                    //    MusicaLow = split[1],
                     //    Aerodynamic = split[2],
-                    //    Shiny = split[3]
+                    //    sHighiny = split[3]
                     //});
                 }
                 else
