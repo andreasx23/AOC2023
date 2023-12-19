@@ -40,23 +40,11 @@ namespace AOC2023.Day19
         {
             long sum = 0;
 
-            Console.WriteLine("167409079868000");
             sum = Bfs();
-            Console.WriteLine(sum);
 
             return sum;
         }
 
-        // 788846272
-        // 1361750208
-        // 2073604890
-        // 1410324064
-        // 376801888
-        // 1743374336
-        // -8383445120
-        // 1039244853168000
-        // 128299639868000
-        // 167409079868000
         private long Bfs()
         {
             Queue<(string workFlowName, long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh)> queue = new();
@@ -95,49 +83,38 @@ namespace AOC2023.Day19
                         }
                         else
                         {
-                            switch (rule.Name)
-                            {
-                                case "x":
-                                    {
-                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, xl, xh);
-                                        queue.Enqueue((rule.SendTo, low, high, ml, mh, al, ah, sl, sh));
-
-                                        (xl, xh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh);
-                                    }
-                                    break;
-                                case "m":
-                                    {
-                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, ml, mh);
-                                        queue.Enqueue((rule.SendTo, xl, xh, low, high, al, ah, sl, sh));
-
-                                        (ml, mh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, ml, mh);
-                                    }
-                                    break;
-                                case "a":
-                                    {
-                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, al, ah);
-                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, low, high, sl, sh));
-
-                                        (al, ah) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, al, ah);
-                                    }
-                                    break;
-                                case "s":
-                                    {
-                                        var (low, high) = CalculateLowAndHigh(rule.Operator, rule.Amount, sl, sh);
-                                        queue.Enqueue((rule.SendTo, xl, xh, ml, mh, sl, sh, low, high));
-
-                                        (sl, sh) = CalculateLowAndHigh(rule.Operator == ">" ? "<=" : ">=", rule.Amount, sl, sh);
-                                    }
-                                    break;
-                                default:
-                                    throw new Exception();
-                            }
+                            var ranges = CalculateRanges(rule.Name, rule.Operator, rule.Amount, xl, xh, ml, mh, al, ah, sl, sh);
+                            queue.Enqueue((rule.SendTo, ranges.xl, ranges.xh, ranges.ml, ranges.mh, ranges.al, ranges.ah, ranges.sl, ranges.sh));
+                            (xl, xh, ml, mh, al, ah, sl, sh) = CalculateRanges(rule.Name, rule.Operator == ">" ? "<=" : ">=", rule.Amount, xl, xh, ml, mh, al, ah, sl, sh);
                         }
                     }
                 }
             }
 
             return sum;
+        }
+
+        private (long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh) CalculateRanges(string name, string @operator, int amount, long xl, long xh, long ml, long mh, long al, long ah, long sl, long sh)
+        {
+            switch (name)
+            {
+                case "x":
+                    (xl, xh) = CalculateLowAndHigh(@operator, amount, xl, xh);
+                    break;
+                case "m":
+                    (ml, mh) = CalculateLowAndHigh(@operator, amount, ml, mh);
+                    break;
+                case "a":
+                    (al, ah) = CalculateLowAndHigh(@operator, amount, al, ah);
+                    break;
+                case "s":
+                    (sl, sh) = CalculateLowAndHigh(@operator, amount, sl, sh);
+                    break;
+                default:
+                    throw new Exception();
+            }
+
+            return (xl, xh, ml, mh, al, ah, sl, sh);
         }
 
         private (long low, long high) CalculateLowAndHigh(string @operator, int amount, long low, long high)
