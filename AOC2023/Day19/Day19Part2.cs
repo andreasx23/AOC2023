@@ -191,16 +191,16 @@ namespace AOC2023.Day19
 
                 if (item.StartsWith("{"))
                 {
-                    //break;
-                    var split = item[1..^1].Split(',').Select(row => int.Parse(row.Split('=').Last().Trim())).ToList();
-                    _parts.Add(new Part()
-                    {
-                        Name = item,
-                        ExtremelyGoodLooking = split[0],
-                        Musical = split[1],
-                        Aerodynamic = split[2],
-                        Shiny = split[3]
-                    });
+                    break;
+                    //var split = item[1..^1].Split(',').Select(row => int.Parse(row.Split('=').Last().Trim())).ToList();
+                    //_parts.Add(new Part()
+                    //{
+                    //    Name = item,
+                    //    ExtremelyGoodLooking = split[0],
+                    //    Musical = split[1],
+                    //    Aerodynamic = split[2],
+                    //    Shiny = split[3]
+                    //});
                 }
                 else
                 {
