@@ -83,23 +83,37 @@ namespace AOC2023.Day21
                     queue.Enqueue((item.x, item.y, item.didGoThroughWall, current.steps + 1));
                 }
 
-                //var groups = queue.GroupBy(x => (x.x, x.y)).ToList();
-                var groups = queue.GroupBy(x => (x.x, x.y, x.didGoThroughWall)).ToList();
+                var groups = queue.GroupBy(x => (x.x, x.y)).ToList();
+                //var groups = queue.GroupBy(x => (x.x, x.y, x.didGoThroughWall)).ToList();
                 queue.Clear();
                 foreach (var group in groups)
                 {
-                    var first = group.First();
-                    if (first.didGoThroughWall)
+                    if (group.Any(x => x.didGoThroughWall))
                     {
-                        //foreach (var tile in group)
-                        //{
-                        //    queue.Enqueue(tile);
-                        //}
+                        var wallPush = group.Where(x => !x.didGoThroughWall);
+                        foreach (var item in wallPush)
+                        {
+                            queue.Enqueue(item);
+                        }
                     }
                     else
                     {
+                        var first = group.First();
                         queue.Enqueue(first);
                     }
+
+                    //var first = group.First();
+                    //if (!first.didGoThroughWall)
+                    //{
+                    //    foreach (var tile in group)
+                    //    {
+                    //        queue.Enqueue(tile);
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    queue.Enqueue(first);
+                    //}
                 }
             }
 
@@ -108,7 +122,7 @@ namespace AOC2023.Day21
 
         private List<(int x, int y, bool didGoThroughWall)> GetNeighbours(int x, int y)
         {
-            List<(int x, int y)> dirs = new()
+            List<(int x, int y)> dirs = new(4)
             {
                 (1, 0),
                 (-1, 0),
@@ -116,7 +130,7 @@ namespace AOC2023.Day21
                 (0, -1)
             };
 
-            List<(int x, int y, bool didGoThroughWall)> validDirs = new();
+            List<(int x, int y, bool didGoThroughWall)> validDirs = new(4);
             foreach (var item in dirs)
             {
                 bool didGoThroughWall = false;
