@@ -12,7 +12,7 @@ namespace AOC2023.Day23
 {
     public class Day23Part2
     {
-        private static readonly bool _useTestData = false;
+        private static readonly bool _useTestData = true;
         private static readonly string _className = "Day23";
         private List<List<string>> _data = new();
         private List<(int x, int y)> _dirs = new()
@@ -42,7 +42,7 @@ namespace AOC2023.Day23
                 }
             }
 
-            sum = Bfs(0, startY, _data.Count - 1, endY);
+            sum = Bfs(watch, 0, startY, _data.Count - 1, endY);
 
             //Print();
 
@@ -59,11 +59,11 @@ namespace AOC2023.Day23
 
         private int ManhattenDistance(int x, int y, int targetX, int targetY)
         {
-            return -(Math.Abs(x - targetX) + Math.Abs(y - targetY));
+            return (Math.Abs(x - targetX) + Math.Abs(y - targetY));
         }
 
         // 6242 to low
-        private int Bfs(int x, int y, int goalX, int goalY)
+        private int Bfs(Stopwatch watch, int x, int y, int goalX, int goalY)
         {
             PriorityQueue<(int x, int y, int steps, HashSet<(int x, int y)> seen), int> queue = new();
             queue.Enqueue((x, y, 0, new HashSet<(int x, int y)>() { (x, y) }), ManhattenDistance(x, y, goalX, goalY));
@@ -77,7 +77,7 @@ namespace AOC2023.Day23
                 {
                     if (current.steps > steps)
                     {
-                        Console.WriteLine(current);
+                        Console.WriteLine($"[{watch.Elapsed}] {current} -- {queue.Count}");
                         steps = current.steps;
                     }
 
