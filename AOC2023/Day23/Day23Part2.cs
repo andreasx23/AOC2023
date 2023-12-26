@@ -12,7 +12,7 @@ namespace AOC2023.Day23
 {
     public class Day23Part2
     {
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day23";
         private List<List<string>> _data = new();
         private List<(int x, int y)> _dirs = new()
@@ -63,6 +63,7 @@ namespace AOC2023.Day23
         }
 
         // 6242 to low
+        // 7645 Not right answer
         private int Bfs(Stopwatch watch, int x, int y, int goalX, int goalY)
         {
             PriorityQueue<(int x, int y, int steps, HashSet<(int x, int y)> seen), int> queue = new();
@@ -84,36 +85,29 @@ namespace AOC2023.Day23
                     continue;
                 }
 
-                foreach (var item in GetNeighbours(current.x, current.y))
+                foreach (var item in _dirs)
                 {
-                    if (!current.seen.Contains(item))
+                    var dx = item.x + current.x;
+                    var dy = item.y + current.y;
+                    var tile = (dx, dy);
+                    if (dx < 0
+                        || dx >= _data.Count
+                        || dy < 0
+                        || dy >= _data[x].Count
+                        || _data[dx][dy] == "#"
+                        || current.seen.Contains(tile))
                     {
-                        var manhatten = ManhattenDistance(current.x, current.y, item.x, item.y);
-                        var newSeen = new HashSet<(int x, int y)>(current.seen) { item };
-                        queue.Enqueue((item.x, item.y, current.steps + 1, newSeen), manhatten);
+                        continue;
                     }
+
+                    //var manhatten = ManhattenDistance(tile.dx, tile.dy, goalX, goalY);
+                    var manhatten = ManhattenDistance(current.x, current.y, tile.dx, tile.dy);
+                    var newSeen = new HashSet<(int x, int y)>(current.seen) { tile };
+                    queue.Enqueue((tile.dx, tile.dy, current.steps + 1, newSeen), manhatten);
                 }
             }
 
             return steps;
-        }
-
-        private List<(int x, int y)> GetNeighbours(int x, int y)
-        {
-            List<(int x, int y)> validDirs = new();
-            foreach (var item in _dirs)
-            {
-                var dx = item.x + x;
-                var dy = item.y + y;
-                if (dx < 0 || dx >= _data.Count || dy < 0 || dy >= _data[x].Count || _data[dx][dy] == "#")
-                {
-                    continue;
-                }
-
-                validDirs.Add((dx, dy));
-            }
-
-            return validDirs;
         }
 
         public void Result()
