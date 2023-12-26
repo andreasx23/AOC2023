@@ -19,7 +19,7 @@ namespace AOC2023.Day21
         {
             long sum = 0;
 
-            int maxSteps = _useTestData ? 10 : 26501365;
+            int maxSteps = _useTestData ? 50 : 26501365;
             for (int i = 0; i < _data.Count; i++)
             {
                 bool isFound = false;
@@ -58,10 +58,10 @@ namespace AOC2023.Day21
         private void Bfs(int x, int y, int maxSteps)
         {
             Queue<(int x, int y, bool didGoThroughWall, int steps)> queue = new();
-            HashSet<(int x, int y)> seen = new();
+            HashSet<(int x, int y, bool didGoTroughWall, int steps)> seen = new();
 
             queue.Enqueue((x, y, false, 0));
-            seen.Add((x, y));
+            seen.Add((x, y, false, 0));
 
             long visitCount = 0;
             while (queue.Count > 0)
@@ -80,40 +80,10 @@ namespace AOC2023.Day21
                 foreach (var item in GetNeighbours(current.x, current.y))
                 {
                     _data[item.x][item.y] = 'O';
-                    queue.Enqueue((item.x, item.y, item.didGoThroughWall, current.steps + 1));
-                }
-
-                var groups = queue.GroupBy(x => (x.x, x.y)).ToList();
-                //var groups = queue.GroupBy(x => (x.x, x.y, x.didGoThroughWall)).ToList();
-                queue.Clear();
-                foreach (var group in groups)
-                {
-                    if (group.Any(x => x.didGoThroughWall))
+                    if (seen.Add((item.x, item.y, item.didGoThroughWall, current.steps + 1)))
                     {
-                        var wallPush = group.Where(x => !x.didGoThroughWall);
-                        foreach (var item in wallPush)
-                        {
-                            queue.Enqueue(item);
-                        }
+                        queue.Enqueue((item.x, item.y, item.didGoThroughWall, current.steps + 1));
                     }
-                    else
-                    {
-                        var first = group.First();
-                        queue.Enqueue(first);
-                    }
-
-                    //var first = group.First();
-                    //if (!first.didGoThroughWall)
-                    //{
-                    //    foreach (var tile in group)
-                    //    {
-                    //        queue.Enqueue(tile);
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    queue.Enqueue(first);
-                    //}
                 }
             }
 

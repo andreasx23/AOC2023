@@ -58,10 +58,10 @@ namespace AOC2023.Day21
         private void Bfs(int x, int y, int maxSteps)
         {
             Queue<(int x, int y, int steps)> queue = new();
-            HashSet<(int x, int y)> seen = new();
+            HashSet<(int x, int y, int steps)> seen = new();
 
             queue.Enqueue((x, y, 0));
-            seen.Add((x, y));
+            seen.Add((x, y, 0));
 
             long visitCount = 0;
             while (queue.Count > 0)
@@ -80,15 +80,10 @@ namespace AOC2023.Day21
                 foreach (var item in GetNeighbours(current.x, current.y))
                 {
                     _data[item.x][item.y] = 'O';
-                    queue.Enqueue((item.x, item.y, current.steps + 1));
-                }
-
-
-                var groups = queue.GroupBy(x => (x.x, x.y)).ToList();
-                queue.Clear();
-                foreach (var item in groups)
-                {
-                    queue.Enqueue((item.First()));
+                    if (seen.Add((item.x, item.y, current.steps + 1)))
+                    {
+                        queue.Enqueue((item.x, item.y, current.steps + 1));
+                    }
                 }
             }
 
