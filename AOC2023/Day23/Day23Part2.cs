@@ -1,8 +1,11 @@
-﻿using System;
+﻿using AOC2023.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -62,23 +65,30 @@ namespace AOC2023.Day23
             return (Math.Abs(x - targetX) + Math.Abs(y - targetY));
         }
 
-        // 6242 to low
-        // 7645 Not right answer
+        // Answer 6538 found in: [01:12:42.4185458 -- 415770399] (140, 139, 6538, System.Collections.Generic.HashSet1[System.ValueTuple2[System.Int32,System.Int32]]) -- 60 NEW MAX!!
         private int Bfs(Stopwatch watch, int x, int y, int goalX, int goalY)
         {
             PriorityQueue<(int x, int y, int steps, HashSet<(int x, int y)> seen), int> queue = new();
             queue.Enqueue((x, y, 0, new HashSet<(int x, int y)>() { (x, y) }), ManhattenDistance(x, y, goalX, goalY));
 
             var steps = int.MinValue;
+            long visit = 0L;
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
+
+                visit++;
+
+                if (visit % 1_000_000 == 0)
+                {
+                    Console.WriteLine($"[{watch.Elapsed} -- {visit}] {current} -- {queue.Count} -- Current max: {steps}");
+                }
 
                 if (current.x == goalX && current.y == goalY)
                 {
                     if (current.steps > steps)
                     {
-                        Console.WriteLine($"[{watch.Elapsed}] {current} -- {queue.Count}");
+                        Console.WriteLine($"[{watch.Elapsed} -- {visit}] {current} -- {queue.Count} NEW MAX!!");
                         steps = current.steps;
                     }
 
@@ -100,9 +110,9 @@ namespace AOC2023.Day23
                         continue;
                     }
 
-                    //var manhatten = ManhattenDistance(tile.dx, tile.dy, goalX, goalY);
                     var manhatten = ManhattenDistance(current.x, current.y, tile.dx, tile.dy);
-                    var newSeen = new HashSet<(int x, int y)>(current.seen) { tile };
+                    var newSeen = current.seen.FastClone();
+                    newSeen.Add(tile);
                     queue.Enqueue((tile.dx, tile.dy, current.steps + 1, newSeen), manhatten);
                 }
             }
