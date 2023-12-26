@@ -58,16 +58,27 @@ namespace AOC2023.Day21
         private void Bfs(int x, int y, int maxSteps)
         {
             Queue<(int x, int y, bool didGoThroughWall, int steps)> queue = new();
-            HashSet<(int x, int y, bool didGoTroughWall, int steps)> seen = new();
+            HashSet<(int x, int y, bool didGoThroughWall, int steps)> seen = new();
+            Dictionary<int, long> gardenPlots = new Dictionary<int, long>();
+
+            for (int i = 0; i <= maxSteps; i++)
+            {
+                gardenPlots[i] = 0;
+            }
 
             queue.Enqueue((x, y, false, 0));
-            seen.Add((x, y, false, 0));
+            seen.Add((x, y, true, 0));
 
             long visitCount = 0;
             while (queue.Count > 0)
             {
-                visitCount++;
                 var current = queue.Dequeue();
+                visitCount++;
+
+                if (visitCount % 100_000 == 0)
+                {
+                    Console.WriteLine($"[{visitCount}] {current}");
+                }
 
                 if (current.steps == maxSteps)
                 {
@@ -77,7 +88,8 @@ namespace AOC2023.Day21
 
                 _data[current.x][current.y] = '.';
 
-                foreach (var item in GetNeighbours(current.x, current.y))
+                var neighbours = GetNeighbours(current.x, current.y);
+                foreach (var item in neighbours.validDirs)
                 {
                     _data[item.x][item.y] = 'O';
                     if (seen.Add((item.x, item.y, item.didGoThroughWall, current.steps + 1)))
@@ -85,12 +97,14 @@ namespace AOC2023.Day21
                         queue.Enqueue((item.x, item.y, item.didGoThroughWall, current.steps + 1));
                     }
                 }
+
+                gardenPlots[current.steps + 1] += neighbours.count;
             }
 
-            Console.WriteLine(visitCount);
+            Console.WriteLine(visitCount + " " + gardenPlots[maxSteps]);
         }
 
-        private List<(int x, int y, bool didGoThroughWall)> GetNeighbours(int x, int y)
+        private (List<(int x, int y, bool didGoThroughWall)> validDirs, long count) GetNeighbours(int x, int y)
         {
             List<(int x, int y)> dirs = new(4)
             {
@@ -100,6 +114,7 @@ namespace AOC2023.Day21
                 (0, -1)
             };
 
+            long count = 0;
             List<(int x, int y, bool didGoThroughWall)> validDirs = new(4);
             foreach (var item in dirs)
             {
@@ -136,10 +151,12 @@ namespace AOC2023.Day21
                     continue;
                 }
 
+                count++;
+
                 validDirs.Add((dx, dy, didGoThroughWall));
             }
 
-            return validDirs;
+            return (validDirs, count);
         }
 
         public void Result()
