@@ -9,7 +9,8 @@ using AOC2023.Day18;
 using AOC2023.Day19;
 using AOC2023.Day20;
 using AOC2023.Day21;
+using AOC2023.Day22;
 using AOC2023.Day23;
 
-Day21Part2 day = new();
+Day22Part1 day = new();
 day.Result();
