@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -16,6 +17,7 @@ namespace AOC2023.Day24
         private List<(double px, double py, double pz, double vx, double vy, double vz)> _data = new();
 
         // 1553 To low
+        // 28121 To high
         public long Solve(Stopwatch watch)
         {
             long sum = 0;
@@ -32,9 +34,10 @@ namespace AOC2023.Day24
                     {
                         sum++;
                     }
-
-                    return 0;
+                    Console.WriteLine();
                 }
+
+                break;
             }
 
             return sum;
@@ -51,30 +54,68 @@ namespace AOC2023.Day24
             var hailstone2FuturePositionStart = FuturePosition(hailstone2, range.min);
             var hailstone2FuturePositionEnd = FuturePosition(hailstone2, range.max);
 
+            Console.WriteLine(hailstone1 + " " + hailstone2);
 
+            FindIntersection(hailstone1FuturePositionStart,
+                             hailstone1FuturePositionEnd,
+                             hailstone2FuturePositionStart,
+                             hailstone2FuturePositionEnd,
+                             out bool doesLinesIntersect,
+                             out bool doesSegmentsIntersect,
+                             out var intersectionPoint);
+
+            if (doesLinesIntersect)
+            {
+                if (IsInsideTestArea((intersectionPoint.x, intersectionPoint.x), testArea) && IsInsideTestArea((intersectionPoint.y, intersectionPoint.y), testArea))
+                {
+                    Console.WriteLine($"YES: ({intersectionPoint.x}, {intersectionPoint.y})");
+                    return true;
+                }
+
+                Console.WriteLine("NO");
+            }
 
             return false;
         }
 
-        //private bool CheckIntersection((double px, double py, double pz, double vx, double vy, double vz) hailstone1,
-        //                               (double px, double py, double pz, double vx, double vy, double vz) hailstone2,
-        //                               (double min, double max) range,
-        //                               (double min, double max) testArea)
-        //{
-        //    var hailstone1FuturePositionStart = FuturePosition(hailstone1, range.min);
-        //    var hailstone1FuturePositionEnd = FuturePosition(hailstone1, range.max);
+        private void FindIntersection((double x, double y, double z) p1,
+                                      (double x, double y, double z) p2,
+                                      (double x, double y, double z) p3,
+                                      (double x, double y, double z) p4,
+                                      out bool linesIntersects,
+                                      out bool segmentsIntersects,
+                                      out (double x, double y, double z) intersection)
+        {
+            // Get the segments' parameters.
+            var x1 = p2.x - p1.x;
+            var y1 = p2.y - p1.y;
+            var x2 = p4.x - p3.x;
+            var y2 = p4.y - p3.y;
 
-        //    var hailstone2FuturePositionStart = FuturePosition(hailstone2, range.min);
-        //    var hailstone2FuturePositionEnd = FuturePosition(hailstone2, range.max);
+            // Solve for t1 and t2
+            var denominator = y1 * x2 - x1 * y2;
 
-        //    //if (IsIntersection((hailstone1FuturePositionStart.x, hailstone1FuturePositionEnd.x), (hailstone2FuturePositionStart.x, hailstone2FuturePositionEnd.x), testArea)
-        //    //    && IsIntersection((hailstone1FuturePositionStart.y, hailstone1FuturePositionEnd.y), (hailstone2FuturePositionStart.y, hailstone2FuturePositionEnd.y), testArea))
-        //    //{
-        //    //    return true;
-        //    //}
+            var t1 = ((p1.x - p3.x) * y2 + (p3.y - p1.y) * x2) / denominator;
+            if (double.IsInfinity(t1))
+            {
+                // The lines are parallel (or close enough to it).
+                linesIntersects = false;
+                segmentsIntersects = false;
+                intersection = (double.NaN, double.NaN, double.NaN);
+            }
+            else
+            {
+                linesIntersects = true;
 
-        //    return false;
-        //}
+                var t2 = ((p3.x - p1.x) * y1 + (p1.y - p3.y) * x1) / -denominator;
+
+                // Find the point of intersection.
+                intersection = (p1.x + x1 * t1, p1.y + y1 * t1, double.NaN);
+
+                // The segments intersect if t1 and t2 are between 0 and 1.
+                segmentsIntersects = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
+            }
+        }
 
         private (double x, double y, double z) FuturePosition((double px, double py, double pz, double vx, double vy, double vz) hailstone, double time)
         {
@@ -82,22 +123,6 @@ namespace AOC2023.Day24
             var dy = hailstone.py + hailstone.vy * time;
             var dz = hailstone.pz + hailstone.vz * time;
             return (dx, dy, dz);
-        }
-
-        private bool IsIntersection((double start, double end) value1, (double start, double end) value2, (double min, double max) testArea)
-        {
-            var min1 = Math.Min(value1.start, value1.end);
-            var max1 = Math.Max(value1.start, value1.end);
-
-            var min2 = Math.Min(value2.start, value2.end);
-            var max2 = Math.Max(value2.start, value2.end);
-
-            if (min1 <= max2 && min2 <= max1 && IsInsideTestArea((min1, max1), testArea) && IsInsideTestArea((min2, max2), testArea))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private bool IsInsideTestArea((double start, double end) futurePosition, (double min, double max) testArea)
