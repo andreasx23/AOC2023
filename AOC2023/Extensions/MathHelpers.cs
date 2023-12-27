@@ -9,6 +9,14 @@ namespace AOC2023.Extensions
 {
     public static class MathHelpers
     {
+        /// <summary>
+        /// min <= value <= max
+        /// </summary>
+        public static bool IsInsideRange<T>(this T value, T min, T max) where T : INumber<T>
+        {
+            return min <= value && value <= max;
+        }
+
         public static T GreatestCommonDivisor<T>(T a, T b) where T : INumber<T>
         {
             while (b != T.Zero)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AOC2023.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -42,7 +43,7 @@ namespace AOC2023.Day24
                         var validA = (px > x1) == (x2 > x1);
                         var validB = (px > x3) == (x4 > x3);
 
-                        if (IsInsideTestArea(px, (min, max)) && IsInsideTestArea(py, (min, max)) && validA && validB)
+                        if (px.IsInsideRange(min, max) && py.IsInsideRange(min, max) && validA && validB)
                         {
                             sum++;
                         }
@@ -56,11 +57,6 @@ namespace AOC2023.Day24
         private (double p, double pv) CalculateLocation(double p, double v)
         {
             return (p, p + v);
-        }
-
-        private bool IsInsideTestArea(double value, (double min, double max) testArea)
-        {
-            return testArea.min <= value && value <= testArea.max;
         }
 
         public void Result()
