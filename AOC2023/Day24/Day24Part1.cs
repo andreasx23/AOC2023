@@ -61,7 +61,6 @@ namespace AOC2023.Day24
                              hailstone2FuturePositionStart,
                              hailstone2FuturePositionEnd,
                              out bool doesLinesIntersect,
-                             out bool doesSegmentsIntersect,
                              out var intersectionPoint);
 
             if (doesLinesIntersect)
@@ -83,37 +82,28 @@ namespace AOC2023.Day24
                                       (double x, double y, double z) p3,
                                       (double x, double y, double z) p4,
                                       out bool linesIntersects,
-                                      out bool segmentsIntersects,
                                       out (double x, double y, double z) intersection)
         {
-            // Get the segments' parameters.
             var x1 = p2.x - p1.x;
             var y1 = p2.y - p1.y;
             var x2 = p4.x - p3.x;
             var y2 = p4.y - p3.y;
 
-            // Solve for t1 and t2
             var denominator = y1 * x2 - x1 * y2;
 
             var t1 = ((p1.x - p3.x) * y2 + (p3.y - p1.y) * x2) / denominator;
             if (double.IsInfinity(t1))
             {
-                // The lines are parallel (or close enough to it).
                 linesIntersects = false;
-                segmentsIntersects = false;
                 intersection = (double.NaN, double.NaN, double.NaN);
             }
             else
             {
                 linesIntersects = true;
-
-                var t2 = ((p3.x - p1.x) * y1 + (p1.y - p3.y) * x1) / -denominator;
-
-                // Find the point of intersection.
-                intersection = (p1.x + x1 * t1, p1.y + y1 * t1, double.NaN);
-
-                // The segments intersect if t1 and t2 are between 0 and 1.
-                segmentsIntersects = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
+                var x = p1.x + x1 * t1;
+                var y = p1.y + y1 * t1;
+                var z = double.NaN;
+                intersection = (x, y, z);
             }
         }
 
