@@ -26,7 +26,7 @@ namespace AOC2023.Day25
             var n = names.Count;
             long runs = 0;
             object @lock = new();
-            for (int i1 = 0; i1 < n; i1++)
+            Parallel.For(0, n, i1 =>
             {
                 var name1 = names[i1];
                 for (int i2 = i1 + 1; i2 < n; i2++)
@@ -49,7 +49,7 @@ namespace AOC2023.Day25
                                     {
                                         runs++;
 
-                                        if (runs % 100_000 == 0)
+                                        if (runs % 1_000_000 == 0)
                                         {
                                             Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
                                         }
@@ -69,52 +69,7 @@ namespace AOC2023.Day25
                         }
                     }
                 }
-            }
-
-            //Parallel.For(0, n, i1 =>
-            //{
-            //    var name1 = names[i1];
-            //    for (int i2 = i1 + 1; i2 < n; i2++)
-            //    {
-            //        var name2 = names[i2];
-            //        for (int i3 = i2 + 1; i3 < n; i3++)
-            //        {
-            //            var name3 = names[i3];
-            //            for (int i4 = i3 + 1; i4 < n; i4++)
-            //            {
-            //                var name4 = names[i4];
-            //                for (int i5 = i4 + 1; i5 < n; i5++)
-            //                {
-            //                    var name5 = names[i5];
-            //                    for (int i6 = i5 + 1; i6 < n; i6++)
-            //                    {
-            //                        var name6 = names[i6];
-
-            //                        lock (@lock)
-            //                        {
-            //                            runs++;
-
-            //                            if (runs % 100_000 == 0)
-            //                            {
-            //                                Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
-            //                            }
-            //                        }
-
-            //                        var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
-            //                        if (currentSum > sum)
-            //                        {
-            //                            lock (@lock)
-            //                            {
-            //                                Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
-            //                                sum = currentSum;
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-            //    }
-            //});
+            });
 
             return sum;
         }
@@ -128,6 +83,7 @@ namespace AOC2023.Day25
 
         private int Bfs((string left, string right) wire1, (string left, string right) wire2, (string left, string right) wire3)
         {
+            // Optimzie this step by creating a HashSet
             if (!CheckIfCutWire(wire1, _data) || !CheckIfCutWire(wire2, _data) || !CheckIfCutWire(wire3, _data))
             {
                 return -1;
