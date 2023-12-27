@@ -68,6 +68,7 @@ namespace AOC2023.Day25
                                     var currentSum = Bfs((key1, key2), (key3, key4), (key5, key6));
                                     if (currentSum > sum)
                                     {
+                                        Console.WriteLine($"[{watch.Elapsed}] New max: {currentSum} -- ({key1}), ({key2}), ({key3}), ({key4}), ({key5}), ({key6})");
                                         sum = currentSum;
                                     }
                                 }
