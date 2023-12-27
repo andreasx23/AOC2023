@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AOC2023.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -72,47 +73,63 @@ namespace AOC2023.Day22
 
             for (int i = 0; i < _bricks.Count; i++)
             {
-                List<(int x, int y, int z)> brick = _bricks[i];
-                foreach (var item in brick)
+                var currentSeen = seen.FastClone();
+                var currentBricks = _bricks.Select(b => b.ToList()).ToList();
+
+                foreach (var item in currentBricks[i])
                 {
-                    seen.Remove(item);
+                    currentSeen.Remove(item);
                 }
 
-                bool isValid = false;
-                for (int j = 0; j < _bricks.Count; j++)
+                HashSet<int> fallAmount = new();
+                while (true)
                 {
-                    if (i == j)
+                    var isDone = true;
+                    for (int j = 0; j < currentBricks.Count; j++)
                     {
-                        continue;
-                    }
-
-                    List<(int x, int y, int z)> b = _bricks[j];
-                    var ok = true;
-                    foreach (var item in b)
-                    {
-                        if (item.z == 1 || seen.Contains((item.x, item.y, item.z - 1)) && !b.Contains((item.x, item.y, item.z - 1)))
+                        if (i == j)
                         {
-                            ok = false;
-                            break;
+                            continue;
+                        }
+
+                        List<(int x, int y, int z)> brick = currentBricks[j];
+                        var ok = true;
+                        foreach (var item in brick)
+                        {
+                            if (item.z == 1 || currentSeen.Contains((item.x, item.y, item.z - 1)) && !brick.Contains((item.x, item.y, item.z - 1)))
+                            {
+                                ok = false;
+                                break;
+                            }
+                        }
+
+                        if (ok)
+                        {
+                            fallAmount.Add(j);
+                            isDone = false;
+
+                            List<(int x, int y, int z)> newBrick = new();
+                            foreach (var item in brick)
+                            {
+                                if (!currentSeen.Remove(item))
+                                {
+                                    throw new Exception("Invalid");
+                                }
+                                currentSeen.Add((item.x, item.y, item.z - 1));
+                                newBrick.Add((item.x, item.y, item.z - 1));
+                            }
+
+                            currentBricks[j] = newBrick;
                         }
                     }
 
-                    if (ok)
+                    if (isDone)
                     {
-                        isValid = true;
                         break;
                     }
                 }
 
-                if (!isValid) 
-                {
-                    sum++;
-                }
-
-                foreach (var item in brick)
-                {
-                    seen.Add(item);
-                }
+                sum += fallAmount.Count;
             }
 
             return sum;
