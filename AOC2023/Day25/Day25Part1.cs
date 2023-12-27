@@ -13,7 +13,7 @@ namespace AOC2023.Day25
 {
     public class Day25Part1
     {
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day25";
         private Dictionary<string, List<string>> _data = new();
         private HashSet<string> _allNames = new();
@@ -22,61 +22,54 @@ namespace AOC2023.Day25
         {
             long sum = 0;
 
-            foreach (var kv1 in _data)
+            var names = _allNames.ToList();
+            var n = names.Count;
+            long runs = 0;
+            object @lock = new();
+            Parallel.For(0, n, i1 =>
             {
-                var key1 = kv1.Key;
-                foreach (var kv2 in _data)
+                var name1 = names[i1];
+                for (int i2 = i1 + 1; i2 < n; i2++)
                 {
-                    var key2 = kv2.Key;
-                    if (key1 == key2)
+                    var name2 = names[i2];
+                    for (int i3 = i2 + 1; i3 < n; i3++)
                     {
-                        continue;
-                    }
-
-                    foreach (var kv3 in _data)
-                    {
-                        var key3 = kv3.Key;
-                        if (key2 == key3)
+                        var name3 = names[i3];
+                        for (int i4 = i3 + 1; i4 < n; i4++)
                         {
-                            continue;
-                        }
-
-                        foreach (var kv4 in _data)
-                        {
-                            var key4 = kv4.Key;
-                            if (key3 == key4)
+                            var name4 = names[i4];
+                            for (int i5 = i4 + 1; i5 < n; i5++)
                             {
-                                continue;
-                            }
-
-                            foreach (var kv5 in _data)
-                            {
-                                var key5 = kv5.Key;
-                                if (key4 == key5)
+                                var name5 = names[i5];
+                                for (int i6 = i5 + 1; i6 < n; i6++)
                                 {
-                                    continue;
-                                }
+                                    var name6 = names[i6];
 
-                                foreach (var kv6 in _data)
-                                {
-                                    var key6 = kv6.Key;
-                                    if (key5 == key6)
+                                    lock (@lock)
                                     {
-                                        continue;
+                                        runs++;
+
+                                        if (runs % 10_000 == 0)
+                                        {
+                                            Console.WriteLine($"[{watch.Elapsed}] ({name1}), ({name2}), ({name3}), ({name4}), ({name5}), ({name6})");
+                                        }
                                     }
 
-                                    var currentSum = Bfs((key1, key2), (key3, key4), (key5, key6));
+                                    var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
                                     if (currentSum > sum)
                                     {
-                                        Console.WriteLine($"[{watch.Elapsed}] New max: {currentSum} -- ({key1}), ({key2}), ({key3}), ({key4}), ({key5}), ({key6})");
-                                        sum = currentSum;
+                                        lock (@lock)
+                                        {
+                                            Console.WriteLine($"[{watch.Elapsed}] New max: {currentSum} -- ({name1}), ({name2}), ({name3}), ({name4}), ({name5}), ({name6})");
+                                            sum = currentSum;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
+            });
 
             return sum;
         }
