@@ -13,7 +13,7 @@ namespace AOC2023.Day25
 {
     public class Day25Part1
     {
-        private static readonly bool _useTestData = false;
+        private static readonly bool _useTestData = true;
         private static readonly string _className = "Day25";
         private Dictionary<string, List<string>> _data = new();
         private HashSet<string> _allNames = new();
@@ -26,7 +26,7 @@ namespace AOC2023.Day25
             var n = names.Count;
             long runs = 0;
             object @lock = new();
-            Parallel.For(0, n, i1 =>
+            for (int i1 = 0; i1 < n; i1++)
             {
                 var name1 = names[i1];
                 for (int i2 = i1 + 1; i2 < n; i2++)
@@ -49,9 +49,9 @@ namespace AOC2023.Day25
                                     {
                                         runs++;
 
-                                        if (runs % 10_000 == 0)
+                                        if (runs % 100_000 == 0)
                                         {
-                                            Console.WriteLine($"[{watch.Elapsed}] ({name1}), ({name2}), ({name3}), ({name4}), ({name5}), ({name6})");
+                                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
                                         }
                                     }
 
@@ -60,7 +60,7 @@ namespace AOC2023.Day25
                                     {
                                         lock (@lock)
                                         {
-                                            Console.WriteLine($"[{watch.Elapsed}] New max: {currentSum} -- ({name1}), ({name2}), ({name3}), ({name4}), ({name5}), ({name6})");
+                                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
                                             sum = currentSum;
                                         }
                                     }
@@ -69,27 +69,118 @@ namespace AOC2023.Day25
                         }
                     }
                 }
-            });
+            }
+
+            //Parallel.For(0, n, i1 =>
+            //{
+            //    var name1 = names[i1];
+            //    for (int i2 = i1 + 1; i2 < n; i2++)
+            //    {
+            //        var name2 = names[i2];
+            //        for (int i3 = i2 + 1; i3 < n; i3++)
+            //        {
+            //            var name3 = names[i3];
+            //            for (int i4 = i3 + 1; i4 < n; i4++)
+            //            {
+            //                var name4 = names[i4];
+            //                for (int i5 = i4 + 1; i5 < n; i5++)
+            //                {
+            //                    var name5 = names[i5];
+            //                    for (int i6 = i5 + 1; i6 < n; i6++)
+            //                    {
+            //                        var name6 = names[i6];
+
+            //                        lock (@lock)
+            //                        {
+            //                            runs++;
+
+            //                            if (runs % 100_000 == 0)
+            //                            {
+            //                                Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+            //                            }
+            //                        }
+
+            //                        var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
+            //                        if (currentSum > sum)
+            //                        {
+            //                            lock (@lock)
+            //                            {
+            //                                Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+            //                                sum = currentSum;
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //});
 
             return sum;
         }
 
         private int Bfs((string left, string right) wire1, (string left, string right) wire2, (string left, string right) wire3)
         {
-            var data = CloneData();
+            var data = _data;
+            //var data = CloneData();
 
             var removedWire1 = CutWire(wire1, data);
-            var removedWire2 = CutWire(wire2, data);
-            var removedWire3 = CutWire(wire3, data);
-
-            if (!removedWire1.isValid || !removedWire2.isValid || !removedWire3.isValid)
+            if (!removedWire1.isValid)
             {
                 return -1;
             }
 
-            var leftSet = Bfs(new List<string>() { removedWire1.names.First() }, data);
-            var rightSet = Bfs(new List<string>() { removedWire1.names.Last() }, data);
-            
+            //var removed1 = data[wire.left].Remove(wire.right);
+            //var removed2 = data[wire.right].Remove(wire.left);
+
+            var removedWire2 = CutWire(wire2, data);
+            if (!removedWire2.isValid)
+            {
+                data[removedWire1.name1].Add(removedWire1.name2);
+                data[removedWire1.name2].Add(removedWire1.name1);
+
+                if (!string.IsNullOrEmpty(removedWire2.name1))
+                {
+                    data[removedWire2.name1].Add(removedWire2.name2);
+                }
+
+                if (!string.IsNullOrEmpty(removedWire2.name2))
+                {
+                    data[removedWire2.name2].Add(removedWire2.name1);
+                }
+
+                return -1;
+            }
+
+            var removedWire3 = CutWire(wire3, data);
+            if (!removedWire3.isValid)
+            {
+                data[removedWire1.name1].Add(removedWire1.name2);
+                data[removedWire1.name2].Add(removedWire1.name1);
+                data[removedWire2.name1].Add(removedWire2.name2);
+                data[removedWire2.name2].Add(removedWire2.name1);
+
+                if (!string.IsNullOrEmpty(removedWire3.name1))
+                {
+                    data[removedWire3.name1].Add(removedWire3.name2);
+                }
+
+                if (!string.IsNullOrEmpty(removedWire3.name2))
+                {
+                    data[removedWire3.name2].Add(removedWire3.name1);
+                }
+
+                return -1;
+            }
+
+            var leftSet = GenerateSet(removedWire1.name1, data, new());
+            var rightSet = GenerateSet(removedWire1.name2, data, leftSet);
+
+            if (rightSet.Count == 1)
+            {
+                return -1;
+            }
+
             if (!leftSet.All(rightSet.Contains))
             {
                 return leftSet.Count * rightSet.Count;
@@ -98,21 +189,23 @@ namespace AOC2023.Day25
             return -1;
         }
 
-        private HashSet<string> Bfs(List<string> names, Dictionary<string, List<string>> data)
+        private HashSet<string> GenerateSet(string name, Dictionary<string, List<string>> data, HashSet<string> otherSet)
         {
             Queue<string> queue = new();
             HashSet<string> seen = new();
 
-            foreach (var item in names)
-            {
-                queue.Enqueue(item);
-                seen.Add(item);
-            }
+            queue.Enqueue(name);
+            seen.Add(name);
 
             while (queue.Count > 0)
             {
                 var currentName = queue.Dequeue();
                 var current = data[currentName];
+
+                if (otherSet.Contains(currentName))
+                {
+                    return new HashSet<string>() { currentName };
+                }
 
                 foreach (var child in current)
                 {
@@ -131,26 +224,26 @@ namespace AOC2023.Day25
             return _data.ToDictionary(x => x.Key, x => x.Value.ToList());
         }
 
-        private (List<string> names, bool isValid) CutWire((string left, string right) wire, Dictionary<string, List<string>> data)
+        private (string name1, string name2, bool isValid) CutWire((string left, string right) wire, Dictionary<string, List<string>> data)
         {
             var removed1 = data[wire.left].Remove(wire.right);
             var removed2 = data[wire.right].Remove(wire.left);
 
             if (removed1 && removed2)
             {
-                return (new List<string>() { wire.left, wire.right }, true);
+                return (wire.left, wire.right, true);
             }
             else if (removed1)
             {
-                return (new List<string>() { wire.right }, false);
+                return ("", wire.right, false);
             }
             else if (removed2)
             {
-                return (new List<string>() { wire.left }, false);
+                return (wire.left, "", false);
             }
             else
             {
-                return (new List<string>(), false);
+                return ("", "", false);
             }
         }
 
