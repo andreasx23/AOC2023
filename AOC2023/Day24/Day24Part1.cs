@@ -12,12 +12,10 @@ namespace AOC2023.Day24
 {
     public class Day24Part1
     {
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day24";
         private List<(double px, double py, double pz, double vx, double vy, double vz)> _data = new();
 
-        // 1553 To low
-        // 28121 To high
         public long Solve(Stopwatch watch)
         {
             long sum = 0;
@@ -26,98 +24,43 @@ namespace AOC2023.Day24
             var max = _useTestData ? 27D : 400000000000000D;
             for (int i = 0; i < _data.Count; i++)
             {
-                var hailstone1 = _data[i];
+                var current = _data[i];
                 for (int j = i + 1; j < _data.Count; j++)
                 {
-                    var hailstone2 = _data[j];
-                    if (CheckIntersection(hailstone1, hailstone2, (min, max), (min, max)))
-                    {
-                        sum++;
-                    }
-                    Console.WriteLine();
-                }
+                    var next = _data[j];
 
-                break;
+                    (double x1, double x2) = CalculateLocation(current.px, current.vx);
+                    (double x3, double x4) = CalculateLocation(next.px, next.vx);
+                    (double y1, double y2) = CalculateLocation(current.py, current.vy);
+                    (double y3, double y4) = CalculateLocation(next.py, next.vy);
+
+                    var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+                    if (denominator != 0D)
+                    {
+                        var px = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator;
+                        var py = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator;
+                        var validA = (px > x1) == (x2 > x1);
+                        var validB = (px > x3) == (x4 > x3);
+
+                        if (IsInsideTestArea(px, (min, max)) && IsInsideTestArea(py, (min, max)) && validA && validB)
+                        {
+                            sum++;
+                        }
+                    }
+                }
             }
 
             return sum;
         }
 
-        private bool CheckIntersection((double px, double py, double pz, double vx, double vy, double vz) hailstone1,
-                                       (double px, double py, double pz, double vx, double vy, double vz) hailstone2,
-                                       (double min, double max) range,
-                                       (double min, double max) testArea)
+        private (double p, double pv) CalculateLocation(double p, double v)
         {
-            var hailstone1FuturePositionStart = FuturePosition(hailstone1, range.min);
-            var hailstone1FuturePositionEnd = FuturePosition(hailstone1, range.max);
-
-            var hailstone2FuturePositionStart = FuturePosition(hailstone2, range.min);
-            var hailstone2FuturePositionEnd = FuturePosition(hailstone2, range.max);
-
-            Console.WriteLine(hailstone1 + " " + hailstone2);
-
-            FindIntersection(hailstone1FuturePositionStart,
-                             hailstone1FuturePositionEnd,
-                             hailstone2FuturePositionStart,
-                             hailstone2FuturePositionEnd,
-                             out bool doesLinesIntersect,
-                             out var intersectionPoint);
-
-            if (doesLinesIntersect)
-            {
-                if (IsInsideTestArea((intersectionPoint.x, intersectionPoint.x), testArea) && IsInsideTestArea((intersectionPoint.y, intersectionPoint.y), testArea))
-                {
-                    Console.WriteLine($"YES: ({intersectionPoint.x}, {intersectionPoint.y})");
-                    return true;
-                }
-
-                Console.WriteLine("NO");
-            }
-
-            return false;
+            return (p, p + v);
         }
 
-        private void FindIntersection((double x, double y, double z) p1,
-                                      (double x, double y, double z) p2,
-                                      (double x, double y, double z) p3,
-                                      (double x, double y, double z) p4,
-                                      out bool linesIntersects,
-                                      out (double x, double y, double z) intersection)
+        private bool IsInsideTestArea(double value, (double min, double max) testArea)
         {
-            var x1 = p2.x - p1.x;
-            var y1 = p2.y - p1.y;
-            var x2 = p4.x - p3.x;
-            var y2 = p4.y - p3.y;
-
-            var denominator = y1 * x2 - x1 * y2;
-
-            var t1 = ((p1.x - p3.x) * y2 + (p3.y - p1.y) * x2) / denominator;
-            if (double.IsInfinity(t1))
-            {
-                linesIntersects = false;
-                intersection = (double.NaN, double.NaN, double.NaN);
-            }
-            else
-            {
-                linesIntersects = true;
-                var x = p1.x + x1 * t1;
-                var y = p1.y + y1 * t1;
-                var z = double.NaN;
-                intersection = (x, y, z);
-            }
-        }
-
-        private (double x, double y, double z) FuturePosition((double px, double py, double pz, double vx, double vy, double vz) hailstone, double time)
-        {
-            var dx = hailstone.px + hailstone.vx * time;
-            var dy = hailstone.py + hailstone.vy * time;
-            var dz = hailstone.pz + hailstone.vz * time;
-            return (dx, dy, dz);
-        }
-
-        private bool IsInsideTestArea((double start, double end) futurePosition, (double min, double max) testArea)
-        {
-            return testArea.min <= futurePosition.start && futurePosition.end <= testArea.max;
+            return testArea.min <= value && value <= testArea.max;
         }
 
         public void Result()
