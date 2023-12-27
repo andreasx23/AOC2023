@@ -13,7 +13,7 @@ namespace AOC2023.Day25
 {
     public class Day25Part1
     {
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day25";
         private Dictionary<string, List<string>> _data = new();
         private HashSet<string> _allNames = new();
@@ -119,57 +119,26 @@ namespace AOC2023.Day25
             return sum;
         }
 
+        private bool CheckIfCutWire((string left, string right) wire, Dictionary<string, List<string>> data)
+        {
+            var contain1 = data[wire.left].Contains(wire.right);
+            var contain2 = data[wire.right].Contains(wire.left);
+            return contain1 && contain2;
+        }
+
         private int Bfs((string left, string right) wire1, (string left, string right) wire2, (string left, string right) wire3)
         {
-            var data = _data;
-            //var data = CloneData();
+            if (!CheckIfCutWire(wire1, _data) || !CheckIfCutWire(wire2, _data) || !CheckIfCutWire(wire3, _data))
+            {
+                return -1;
+            }
 
+            var data = CloneData();
             var removedWire1 = CutWire(wire1, data);
-            if (!removedWire1.isValid)
-            {
-                return -1;
-            }
-
-            //var removed1 = data[wire.left].Remove(wire.right);
-            //var removed2 = data[wire.right].Remove(wire.left);
-
             var removedWire2 = CutWire(wire2, data);
-            if (!removedWire2.isValid)
-            {
-                data[removedWire1.name1].Add(removedWire1.name2);
-                data[removedWire1.name2].Add(removedWire1.name1);
-
-                if (!string.IsNullOrEmpty(removedWire2.name1))
-                {
-                    data[removedWire2.name1].Add(removedWire2.name2);
-                }
-
-                if (!string.IsNullOrEmpty(removedWire2.name2))
-                {
-                    data[removedWire2.name2].Add(removedWire2.name1);
-                }
-
-                return -1;
-            }
-
             var removedWire3 = CutWire(wire3, data);
-            if (!removedWire3.isValid)
+            if (!removedWire1.isValid || !removedWire2.isValid || !removedWire3.isValid)
             {
-                data[removedWire1.name1].Add(removedWire1.name2);
-                data[removedWire1.name2].Add(removedWire1.name1);
-                data[removedWire2.name1].Add(removedWire2.name2);
-                data[removedWire2.name2].Add(removedWire2.name1);
-
-                if (!string.IsNullOrEmpty(removedWire3.name1))
-                {
-                    data[removedWire3.name1].Add(removedWire3.name2);
-                }
-
-                if (!string.IsNullOrEmpty(removedWire3.name2))
-                {
-                    data[removedWire3.name2].Add(removedWire3.name1);
-                }
-
                 return -1;
             }
 
