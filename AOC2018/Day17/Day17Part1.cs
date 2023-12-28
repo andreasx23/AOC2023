@@ -31,7 +31,25 @@ namespace AOC2018.Day17
             var targetX = _data.Max(data => data.x) + 1;
 
             var seen = new HashSet<(int x, int y, Direction direction)>();
-            Dfs(spring.x, spring.y, targetX, seen, Direction.DOWN);
+            for (int i = 0; i < 5; i++)
+            {
+                seen.Clear();
+                Dfs(spring.x, spring.y, targetX, seen, Direction.DOWN);
+                foreach (var item in seen.Where(x => x.direction != Direction.DOWN))
+                {
+                    sum++;
+
+                    if (!seen.Contains((item.x + 1, item.y, Direction.DOWN)) && !_data.Contains((item.x + 1, item.y)))
+                    {
+                        _data.Add((item.x, item.y));
+                    }
+                }
+
+                //foreach (var item in seen.Where(x => x.direction == Direction.DOWN))
+                //{
+                //    _data.Remove((item.x, item.y));
+                //}
+            }
 
             char[][] grid = new char[targetX][];
             for (int i = 0; i < grid.Length; i++)
@@ -58,8 +76,6 @@ namespace AOC2018.Day17
                 Console.WriteLine(string.Join("", item.Skip(450).Take(75)));
             }
 
-            sum = seen.Count;
-
             return sum;
         }
 
@@ -69,13 +85,6 @@ namespace AOC2018.Day17
             {
                 return;
             }
-
-            Console.WriteLine((x, y, direction));
-
-            //if (direction == Direction.LEFT || direction == Direction.RIGHT)
-            //{
-
-            //}
 
             var downX = x + 1;
             if (!_data.Contains((downX, y)))
@@ -95,9 +104,6 @@ namespace AOC2018.Day17
             {
                 Dfs(x, rightY, targetX, seen, Direction.RIGHT);
             }
-
-            var upX = x - 1;
-            Dfs(upX, y, targetX, seen, Direction.UP);
         }
 
         public void Result()
