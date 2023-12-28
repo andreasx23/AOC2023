@@ -1,5 +1,6 @@
 ﻿using AOC2023.Extensions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AOC2023.Day25
 {
@@ -16,6 +18,7 @@ namespace AOC2023.Day25
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day25";
         private Dictionary<string, List<string>> _data = new();
+        private Dictionary<string, HashSet<string>> _dataHashset = new();
         private HashSet<string> _allNames = new();
 
         public long Solve(Stopwatch watch)
@@ -26,55 +29,105 @@ namespace AOC2023.Day25
             var n = names.Count;
             long runs = 0;
             object @lock = new();
-            Parallel.For(0, n, i1 =>
+            object @resultLock = new();
+
+            ConcurrentDictionary<(int i1, int i2, int i3, int i4, int i5, int i6), bool> seen = new();
+
+            Parallel.For(0, n, x =>
             {
-                var name1 = names[i1];
-                for (int i2 = i1 + 1; i2 < n; i2++)
+                Random random = new Random();
+                while (true)
                 {
+                    var i1 = random.Next(0, n);
+                    var i2 = random.Next(0, n);
+                    var i3 = random.Next(0, n);
+                    var i4 = random.Next(0, n);
+                    var i5 = random.Next(0, n);
+                    var i6 = random.Next(0, n);
+
+                    //if (!seen.TryAdd((i1, i2, i3, i4, i5, i6), true))
+                    //{
+                    //    continue;
+                    //}
+
+                    var name1 = names[i1];
                     var name2 = names[i2];
-                    for (int i3 = i2 + 1; i3 < n; i3++)
+                    var name3 = names[i3];
+                    var name4 = names[i4];
+                    var name5 = names[i5];
+                    var name6 = names[i6];
+
+                    lock (@lock)
                     {
-                        var name3 = names[i3];
-                        for (int i4 = i3 + 1; i4 < n; i4++)
+                        runs++;
+
+                        if (runs % 10_000_000 == 0)
                         {
-                            var name4 = names[i4];
-                            for (int i5 = i4 + 1; i5 < n; i5++)
-                            {
-                                var name5 = names[i5];
-                                for (int i6 = i5 + 1; i6 < n; i6++)
-                                {
-                                    var name6 = names[i6];
+                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+                        }
+                    }
 
-                                    lock (@lock)
-                                    {
-                                        runs++;
-
-                                        if (runs % 1_000_000 == 0)
-                                        {
-                                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
-                                        }
-                                    }
-
-                                    var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
-                                    if (currentSum > sum)
-                                    {
-                                        lock (@lock)
-                                        {
-                                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
-                                            sum = currentSum;
-                                        }
-                                    }
-                                }
-                            }
+                    var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
+                    if (currentSum > sum)
+                    {
+                        lock (resultLock)
+                        {
+                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+                            sum = currentSum;
                         }
                     }
                 }
             });
 
+            //Parallel.For(0, n, i1 =>
+            //{
+            //var name1 = names[i1];
+            //for (int i2 = i1 + 1; i2 < n; i2++)
+            //{
+            //    var name2 = names[i2];
+            //    for (int i3 = i2 + 1; i3 < n; i3++)
+            //    {
+            //        var name3 = names[i3];
+            //        for (int i4 = i3 + 1; i4 < n; i4++)
+            //        {
+            //            var name4 = names[i4];
+            //            for (int i5 = i4 + 1; i5 < n; i5++)
+            //            {
+            //                var name5 = names[i5];
+            //                for (int i6 = i5 + 1; i6 < n; i6++)
+            //                {
+            //                    var name6 = names[i6];
+
+            //                    lock (@lock)
+            //                    {
+            //                        runs++;
+
+            //                        if (runs % 20_000_000 == 0)
+            //                        {
+            //                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] Current max: {sum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+            //                        }
+            //                    }
+
+            //                    var currentSum = Bfs((name1, name2), (name3, name4), (name5, name6));
+            //                    if (currentSum > sum)
+            //                    {
+            //                        lock (@lock)
+            //                        {
+            //                            Console.WriteLine($"[{watch.Elapsed} -- {runs}] New max: {currentSum} -- ({i1}: {name1}), ({i2}: {name2}), ({i3}: {name3}), ({i4}: {name4}), ({i5}: {name5}), ({i6}: {name6})");
+            //                            sum = currentSum;
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+            //});
+
             return sum;
         }
 
-        private bool CheckIfCutWire((string left, string right) wire, Dictionary<string, List<string>> data)
+        private bool CheckIfCutWire((string left, string right) wire, Dictionary<string, HashSet<string>> data)
         {
             var contain1 = data[wire.left].Contains(wire.right);
             var contain2 = data[wire.right].Contains(wire.left);
@@ -83,8 +136,7 @@ namespace AOC2023.Day25
 
         private int Bfs((string left, string right) wire1, (string left, string right) wire2, (string left, string right) wire3)
         {
-            // Optimzie this step by creating a HashSet
-            if (!CheckIfCutWire(wire1, _data) || !CheckIfCutWire(wire2, _data) || !CheckIfCutWire(wire3, _data))
+            if (!CheckIfCutWire(wire1, _dataHashset) || !CheckIfCutWire(wire2, _dataHashset) || !CheckIfCutWire(wire3, _dataHashset))
             {
                 return -1;
             }
@@ -101,7 +153,7 @@ namespace AOC2023.Day25
             var leftSet = GenerateSet(removedWire1.name1, data, new());
             var rightSet = GenerateSet(removedWire1.name2, data, leftSet);
 
-            if (rightSet.Count == 1)
+            if (rightSet is null)
             {
                 return -1;
             }
@@ -129,7 +181,7 @@ namespace AOC2023.Day25
 
                 if (otherSet.Contains(currentName))
                 {
-                    return new HashSet<string>() { currentName };
+                    return null;
                 }
 
                 foreach (var child in current)
@@ -216,6 +268,7 @@ namespace AOC2023.Day25
             }
 
             _data = newData;
+            _dataHashset = newData.ToDictionary(x => x.Key, x => x.Value.ToHashSet());
         }
     }
 }
