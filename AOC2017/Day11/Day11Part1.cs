@@ -14,6 +14,7 @@ namespace AOC2017.Day11
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day11";
         private List<string> _data = new();
+        private List<(int x, int y)> _directions = new();
        
         public long Solve(Stopwatch watch)
         {
@@ -50,7 +51,7 @@ namespace AOC2017.Day11
                     return current.steps;
                 }
 
-                foreach (var item in GetValidDirs(current.x, current.y))
+                foreach (var item in DirectionsHelper.GetDirections(_directions, current.x, current.y))
                 {
                     if (seen.Add(item))
                     {
@@ -60,19 +61,6 @@ namespace AOC2017.Day11
             }
 
             return -1;
-        }
-
-        private List<(int x, int y)> GetValidDirs(int x, int y)
-        {
-            List<(int x, int y)> dirs = new();
-            foreach (var item in DirectionsHelper.HexagonDirections.Values)
-            {
-                var dx = item.x + x;
-                var dy = item.y + y;
-                dirs.Add((dx, dy));
-            }
-
-            return dirs;
         }
 
         public void Result()
@@ -87,6 +75,7 @@ namespace AOC2017.Day11
         {
             var lines = File.ReadAllLines(@$"{_className}\{(_useTestData ? "Test2" : "Data")}.txt");
             _data = lines.First().Split(',').ToList();
+            _directions = DirectionsHelper.HexagonDirections.Values.ToList();
         }
     }
 }

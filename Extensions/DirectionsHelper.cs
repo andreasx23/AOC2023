@@ -38,7 +38,7 @@ namespace Extensions
             { "sw", (1, -1) },
         };
 
-        public static List<(int x, int y)> GetValidDirs(IEnumerable<(int x, int y)> dirs, int height, int width, int x, int y)
+        public static List<(int x, int y)> GetValidDirections(IEnumerable<(int x, int y)> dirs, int height, int width, int x, int y)
         {
             List<(int x, int y)> validDirs = new();
             foreach (var item in dirs)
@@ -51,6 +51,19 @@ namespace Extensions
                     continue;
                 }
 
+                validDirs.Add((dx, dy));
+            }
+
+            return validDirs;
+        }
+
+        public static List<(int x, int y)> GetDirections(IEnumerable<(int x, int y)> dirs, int x, int y)
+        {
+            List<(int x, int y)> validDirs = new();
+            foreach (var item in dirs)
+            {
+                var dx = item.x + x;
+                var dy = item.y + y;
                 validDirs.Add((dx, dy));
             }
 
