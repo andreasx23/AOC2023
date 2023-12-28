@@ -26,22 +26,18 @@ namespace Extensions
             { "w", (0, -1) },
         };
 
-        public static readonly Dictionary<string, (int x, int y)> OrdinalDirections = new()
+        public static readonly Dictionary<string, (int x, int y)> OrdinalDirections = new(CardinalDirections)
         {
-            { "n", (-1, 0) },
-            { "s", (1, 0) },
-            { "e", (0, 1) },
-            { "w", (0, -1) },
             { "nw", (-1, -1) },
             { "ne", (-1, 1) },
             { "se", (1, 1) },
             { "sw", (1, -1) },
         };
 
-        public static List<(int x, int y)> GetValidDirections(IEnumerable<(int x, int y)> dirs, int height, int width, int x, int y)
+        public static List<(int x, int y)> GetValidDirections(IEnumerable<(int x, int y)> directions, int height, int width, int x, int y)
         {
-            List<(int x, int y)> validDirs = new();
-            foreach (var item in dirs)
+            List<(int x, int y)> validDirections = new(directions.Count());
+            foreach (var item in directions)
             {
                 var dx = item.x + x;
                 var dy = item.y + y;
@@ -51,23 +47,23 @@ namespace Extensions
                     continue;
                 }
 
-                validDirs.Add((dx, dy));
+                validDirections.Add((dx, dy));
             }
 
-            return validDirs;
+            return validDirections;
         }
 
-        public static List<(int x, int y)> GetDirections(IEnumerable<(int x, int y)> dirs, int x, int y)
+        public static List<(int x, int y)> GetDirections(IEnumerable<(int x, int y)> directions, int x, int y)
         {
-            List<(int x, int y)> validDirs = new();
-            foreach (var item in dirs)
+            List<(int x, int y)> validDirections = new(directions.Count());
+            foreach (var item in directions)
             {
                 var dx = item.x + x;
                 var dy = item.y + y;
-                validDirs.Add((dx, dy));
+                validDirections.Add((dx, dy));
             }
 
-            return validDirs;
+            return validDirections;
         }
     }
 }
