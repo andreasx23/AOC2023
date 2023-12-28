@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AOC2018.Day17
 {
@@ -30,31 +31,18 @@ namespace AOC2018.Day17
             (int x, int y) spring = (0, 500);
             var targetX = _data.Max(data => data.x) + 1;
 
-            var seen = new HashSet<(int x, int y, Direction direction)>();
-            for (int i = 0; i < 5; i++)
-            {
-                seen.Clear();
-                Dfs(spring.x, spring.y, targetX, seen, Direction.DOWN);
-                foreach (var item in seen.Where(x => x.direction != Direction.DOWN))
-                {
-                    sum++;
+            sum = Bfs(spring.x, spring.y, targetX);
 
-                    if (!seen.Contains((item.x + 1, item.y, Direction.DOWN)) && !_data.Contains((item.x + 1, item.y)))
-                    {
-                        _data.Add((item.x, item.y));
-                    }
-                }
+            return sum;
+        }
 
-                //foreach (var item in seen.Where(x => x.direction == Direction.DOWN))
-                //{
-                //    _data.Remove((item.x, item.y));
-                //}
-            }
-
+        private void Print(int targetX, HashSet<(int x, int y)> seen)
+        {
+            var maxY = _data.Max(x => x.y) + 1;
             char[][] grid = new char[targetX][];
             for (int i = 0; i < grid.Length; i++)
             {
-                grid[i] = new char[600];
+                grid[i] = new char[maxY];
                 for (int j = 0; j < grid[i].Length; j++)
                 {
                     grid[i][j] = '.';
@@ -73,37 +61,102 @@ namespace AOC2018.Day17
 
             foreach (var item in grid)
             {
-                Console.WriteLine(string.Join("", item.Skip(450).Take(75)));
+                if (_useTestData)
+                {
+                    Console.WriteLine($"{string.Join("", item.Skip(494))}.");
+                }
+                else
+                {
+                    Console.WriteLine(string.Join("", item));
+                }
             }
 
-            return sum;
+            Console.WriteLine();
         }
 
-        private void Dfs(int x, int y, int targetX, HashSet<(int x, int y, Direction direction)> seen, Direction direction)
+        private long Bfs(int x, int y, int targetX)
         {
-            if (x == targetX || _data.Contains((x, y)) || !seen.Add((x, y, direction)))
+            PriorityQueue<(int x, int y, int water, int previousX, int previousY, bool addedPrevious, bool isPrevious), int> queue = new();
+            HashSet<(int x, int y)> seen = new();
+
+            queue.Enqueue((x, y, 0, x, y, false, false), -x);
+
+            while (queue.Count > 0)
             {
-                return;
+                var current = queue.Dequeue();
+
+                if (current.x == targetX)
+                {
+                    Console.WriteLine("YES");
+                    continue;
+                }
+
+                if (!seen.Add((current.x, current.y)))
+                {
+                    continue;
+                }
+
+                var downX = current.x + 1;
+                if (!_data.Contains((downX, current.y)) && (!current.isPrevious || current.x == 0))
+                {
+                    queue.Enqueue((downX, current.y, current.water + 1, current.x, current.y, false, false), -downX);
+                }
+                else
+                {
+                    var lefY = current.y - 1;
+                    while (!_data.Contains((current.x, lefY)) && (seen.Contains((current.x + 1, lefY)) || _data.Contains((current.x + 1, lefY))))
+                    {
+                        seen.Add((current.x, lefY));
+                        lefY--;
+                    }
+
+                    var rightY = current.y + 1;
+                    while (!_data.Contains((current.x, rightY)) && (seen.Contains((current.x + 1, rightY)) || _data.Contains((current.x + 1, rightY))))
+                    {
+                        seen.Add((current.x, rightY));
+                        rightY++;
+                    }
+
+                    bool addLeft = false;
+                    if (!_data.Contains((current.x + 1, lefY)) && !seen.Contains((current.x + 1, lefY)))
+                    {
+                        addLeft = true;
+                    }
+
+                    bool addRight = false;
+                    if (!_data.Contains((current.x + 1, rightY)) && !seen.Contains((current.x + 1, rightY)))
+                    {
+                        addRight = true;
+                    }
+
+                    if (addLeft || addRight)
+                    {
+                        queue.Clear();
+
+                        if (addLeft)
+                        {
+                            queue.Enqueue((current.x, lefY, current.water + 1, current.previousX, current.previousY, true, false), -current.x * 2);
+                        }
+
+                        if (addRight)
+                        {
+                            queue.Enqueue((current.x, rightY, current.water + 1, current.previousX, current.previousY, true, false), -current.x * 2);
+                        }
+                    }
+                    else
+                    {
+                        if (!current.addedPrevious)
+                        {
+                            queue.Enqueue((current.previousX, current.previousY, current.water - 1, current.previousX - 1, current.previousY, false, true), current.previousX);
+                            seen.Remove((current.previousX, current.previousY));
+                        }
+                    }
+                }
             }
 
-            var downX = x + 1;
-            if (!_data.Contains((downX, y)))
-            {
-                Dfs(downX, y, targetX, seen, Direction.DOWN);
-                return;
-            }
+            Print(targetX, seen);
 
-            var lefY = y - 1;
-            if (!_data.Contains((x, lefY)))
-            {
-                Dfs(x, lefY, targetX, seen, Direction.LEFT);
-            }
-
-            var rightY = y + 1;
-            if (!_data.Contains((x, rightY)))
-            {
-                Dfs(x, rightY, targetX, seen, Direction.RIGHT);
-            }
+            return seen.Count - 1;
         }
 
         public void Result()
