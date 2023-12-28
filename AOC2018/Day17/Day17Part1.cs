@@ -24,6 +24,7 @@ namespace AOC2018.Day17
         private static readonly string _className = "Day17";
         private HashSet<(int x, int y)> _data = new();
 
+        // https://adventofcode.com/2018/day/17
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -38,7 +39,7 @@ namespace AOC2018.Day17
 
         private void Print(int targetX, HashSet<(int x, int y)> seen, int lastX, int lastY)
         {
-            var maxY = _data.Max(x => x.y) + 1;
+            var maxY = Math.Max(_data.Max(x => x.y) + 1, seen.Max(x => x.y));
             char[][] grid = new char[targetX][];
             for (int i = 0; i < grid.Length; i++)
             {
@@ -113,11 +114,11 @@ namespace AOC2018.Day17
                 }
                 else
                 {
-                    var lefY = current.y - 1;
-                    while (!_data.Contains((current.x, lefY)) && (seen.Contains((current.x + 1, lefY)) || _data.Contains((current.x + 1, lefY))))
+                    var leftY = current.y - 1;
+                    while (!_data.Contains((current.x, leftY)) && (seen.Contains((current.x + 1, leftY)) || _data.Contains((current.x + 1, leftY))))
                     {
-                        seen.Add((current.x, lefY));
-                        lefY--;
+                        seen.Add((current.x, leftY));
+                        leftY--;
                     }
 
                     var rightY = current.y + 1;
@@ -128,7 +129,7 @@ namespace AOC2018.Day17
                     }
 
                     bool addLeft = false;
-                    if (!_data.Contains((current.x + 1, lefY)) && !seen.Contains((current.x + 1, lefY)))
+                    if (!_data.Contains((current.x + 1, leftY)) && !seen.Contains((current.x + 1, leftY)))
                     {
                         addLeft = true;
                     }
@@ -139,13 +140,18 @@ namespace AOC2018.Day17
                         addRight = true;
                     }
 
+                    if ((leftY == 515 || rightY == 515))
+                    {
+
+                    }
+
                     if (addLeft || addRight)
                     {
                         queue.Clear();
 
                         if (addLeft)
                         {
-                            queue.Enqueue((current.x, lefY, current.previousX, current.previousY, true, false), -current.x * 2);
+                            queue.Enqueue((current.x, leftY, current.previousX, current.previousY, true, false), -current.x * 2);
                         }
 
                         if (addRight)
