@@ -20,7 +20,7 @@ namespace AOC2018.Day17
             RIGHT
         }
 
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day17";
         private HashSet<(int x, int y)> _data = new();
 
@@ -36,7 +36,7 @@ namespace AOC2018.Day17
             return sum;
         }
 
-        private void Print(int targetX, HashSet<(int x, int y)> seen)
+        private void Print(int targetX, HashSet<(int x, int y)> seen, int lastX, int lastY)
         {
             var maxY = _data.Max(x => x.y) + 1;
             char[][] grid = new char[targetX][];
@@ -59,15 +59,20 @@ namespace AOC2018.Day17
                 grid[item.x][item.y] = 'W';
             }
 
-            foreach (var item in grid)
+            grid[lastX][lastY] = ' ';
+
+            if (_useTestData)
             {
-                if (_useTestData)
+                foreach (var item in grid.Take(200))
                 {
                     Console.WriteLine($"{string.Join("", item.Skip(494))}.");
                 }
-                else
+            }
+            else
+            {
+                foreach (var item in grid.Take(120))
                 {
-                    Console.WriteLine(string.Join("", item));
+                    Console.WriteLine(string.Join("", item.Skip(475)));
                 }
             }
 
@@ -76,11 +81,13 @@ namespace AOC2018.Day17
 
         private long Bfs(int x, int y, int targetX)
         {
-            PriorityQueue<(int x, int y, int water, int previousX, int previousY, bool addedPrevious, bool isPrevious), int> queue = new();
+            PriorityQueue<(int x, int y, int previousX, int previousY, bool addedPrevious, bool isPrevious), int> queue = new();
             HashSet<(int x, int y)> seen = new();
 
-            queue.Enqueue((x, y, 0, x, y, false, false), -x);
+            queue.Enqueue((x, y, x, y, false, false), -x);
 
+            var lastX = 0;
+            var lastY = 0;
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
@@ -96,10 +103,13 @@ namespace AOC2018.Day17
                     continue;
                 }
 
+                lastX = current.x;
+                lastY = current.y;
+
                 var downX = current.x + 1;
                 if (!_data.Contains((downX, current.y)) && (!current.isPrevious || current.x == 0))
                 {
-                    queue.Enqueue((downX, current.y, current.water + 1, current.x, current.y, false, false), -downX);
+                    queue.Enqueue((downX, current.y, current.x, current.y, false, false), -downX);
                 }
                 else
                 {
@@ -135,26 +145,32 @@ namespace AOC2018.Day17
 
                         if (addLeft)
                         {
-                            queue.Enqueue((current.x, lefY, current.water + 1, current.previousX, current.previousY, true, false), -current.x * 2);
+                            queue.Enqueue((current.x, lefY, current.previousX, current.previousY, true, false), -current.x * 2);
                         }
 
                         if (addRight)
                         {
-                            queue.Enqueue((current.x, rightY, current.water + 1, current.previousX, current.previousY, true, false), -current.x * 2);
+                            queue.Enqueue((current.x, rightY, current.previousX, current.previousY, true, false), -current.x * 2);
                         }
                     }
                     else
                     {
                         if (!current.addedPrevious)
                         {
-                            queue.Enqueue((current.previousX, current.previousY, current.water - 1, current.previousX - 1, current.previousY, false, true), current.previousX);
+                            queue.Enqueue((current.previousX, current.previousY, current.previousX - 1, current.previousY, false, true), current.previousX);
                             seen.Remove((current.previousX, current.previousY));
                         }
                     }
                 }
             }
 
-            Print(targetX, seen);
+            var temp = seen.OrderByDescending(x => x.x).ToList();
+
+            Print(targetX, seen, lastX, lastY);
+
+
+
+            Console.WriteLine(lastX + " " + lastY);
 
             return seen.Count - 1;
         }
