@@ -1,4 +1,4 @@
-﻿using AOC2023.Extensions;
+﻿using Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

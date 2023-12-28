@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AOC2023.Extensions
+namespace Extensions
 {
     public static class HashSetExtensions
     {
