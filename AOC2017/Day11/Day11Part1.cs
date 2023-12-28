@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Extensions;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,16 +14,7 @@ namespace AOC2017.Day11
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day11";
         private List<string> _data = new();
-        private Dictionary<string, (int x, int y)> _directions = new()
-        {
-            { "n", (0, -1) },
-            { "ne", (1, -1) },
-            { "se", (1, 0) },
-            { "s", (0, 1) },
-            { "sw", (-1, 1) },
-            { "nw", (-1, 0) },
-        };
-
+       
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -31,7 +23,7 @@ namespace AOC2017.Day11
             int y = 0;
             foreach (var item in _data)
             {
-                var dir = _directions[item];
+                var dir = DirectionsHelper.HexagonDirections[item];
                 x += dir.x;
                 y += dir.y;
             }
@@ -73,7 +65,7 @@ namespace AOC2017.Day11
         private List<(int x, int y)> GetValidDirs(int x, int y)
         {
             List<(int x, int y)> dirs = new();
-            foreach (var item in _directions.Values)
+            foreach (var item in DirectionsHelper.HexagonDirections.Values)
             {
                 var dx = item.x + x;
                 var dy = item.y + y;

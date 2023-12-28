@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Extensions;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,16 +14,7 @@ namespace AOC2017.Day11
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day11";
         private List<string> _data = new();
-        private Dictionary<string, (int x, int y)> _directions = new()
-        {
-            { "n", (0, -1) },
-            { "ne", (1, -1) },
-            { "se", (1, 0) },
-            { "s", (0, 1) },
-            { "sw", (-1, 1) },
-            { "nw", (-1, 0) },
-        };
-
+        
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -33,7 +25,7 @@ namespace AOC2017.Day11
             List<(int x, int y)> allSteps = new();
             foreach (var item in _data)
             {
-                var dir = _directions[item];
+                var dir = DirectionsHelper.HexagonDirections[item];
                 x += dir.x;
                 y += dir.y;
                 allSteps.Add((x, y));
@@ -43,7 +35,7 @@ namespace AOC2017.Day11
             object @lock = new();
             Parallel.ForEach(allSteps, step =>
             {
-                var localSum = CalculateDistance((0, 0), step);
+                var localSum = DistanceHelper.CalculateDistanceFor3DSpaceIn2DSpace((0, 0), step);
                 lock (@lock)
                 {
                     done++;
@@ -62,21 +54,6 @@ namespace AOC2017.Day11
             });
 
             return sum;
-        }
-
-        private (int x, int y, int z) ToCubeCoordinates(int x, int y)
-        {
-            int z = -x - y;
-            return (x, y, z);
-        }
-
-        private int CalculateDistance((int x, int y) startPosition, (int x, int y) targetPosition)
-        {
-            var cubeStartPosition = ToCubeCoordinates(startPosition.x, startPosition.y);
-            var cubeTargetPosition = ToCubeCoordinates(targetPosition.x, targetPosition.y);
-            return (Math.Abs(cubeStartPosition.x - cubeTargetPosition.x)
-                    + Math.Abs(cubeStartPosition.y - cubeTargetPosition.y)
-                    + Math.Abs(cubeStartPosition.z - cubeTargetPosition.z)) / 2;
         }
 
         public void Result()
