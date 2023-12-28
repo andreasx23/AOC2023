@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Extensions", "Extensions\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOC2017", "AOC2017\AOC2017.csproj", "{72E96AAA-B4EA-4A1E-9403-5379181E4BBC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOC2018", "AOC2018\AOC2018.csproj", "{35A088F4-65F2-4CE7-820D-F4D364056F3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{72E96AAA-B4EA-4A1E-9403-5379181E4BBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72E96AAA-B4EA-4A1E-9403-5379181E4BBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72E96AAA-B4EA-4A1E-9403-5379181E4BBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35A088F4-65F2-4CE7-820D-F4D364056F3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35A088F4-65F2-4CE7-820D-F4D364056F3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35A088F4-65F2-4CE7-820D-F4D364056F3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35A088F4-65F2-4CE7-820D-F4D364056F3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
