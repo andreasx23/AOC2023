@@ -1,2 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using AOC2018.Day17;
+
+var day = new Day17Part1();
+day.Result();
