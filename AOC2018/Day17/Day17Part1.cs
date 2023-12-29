@@ -39,7 +39,7 @@ namespace AOC2018.Day17
 
         private void Print(int targetX, HashSet<(int x, int y)> seen, int lastX, int lastY)
         {
-            var maxY = Math.Max(_data.Max(x => x.y) + 1, seen.Max(x => x.y));
+            var maxY = Math.Max(_data.Max(x => x.y), seen.Max(x => x.y)) + 1;
             char[][] grid = new char[targetX][];
             for (int i = 0; i < grid.Length; i++)
             {
@@ -55,12 +55,15 @@ namespace AOC2018.Day17
                 grid[item.x][item.y] = '#';
             }
 
-            foreach (var item in seen)
+            foreach (var item in seen.Where(temp => temp.x >= 0 && temp.y >= 0))
             {
                 grid[item.x][item.y] = 'W';
             }
 
-            grid[lastX][lastY] = ' ';
+            if (lastX >= 0 && lastY >= 0)
+            {
+                grid[lastX][lastY] = ' ';
+            }
 
             if (_useTestData)
             {
@@ -71,9 +74,14 @@ namespace AOC2018.Day17
             }
             else
             {
-                foreach (var item in grid.Take(120))
+                //foreach (var item in grid.Take(120))
+                //{
+                //    Console.WriteLine(string.Join("", item.Skip(475)));
+                //}
+
+                foreach (var item in grid)
                 {
-                    Console.WriteLine(string.Join("", item.Skip(475)));
+                    Console.WriteLine(string.Join("", item.Skip(400)));
                 }
             }
 
@@ -87,8 +95,8 @@ namespace AOC2018.Day17
 
             queue.Enqueue((x, y, x, y, false, false), -x);
 
-            var lastX = 0;
-            var lastY = 0;
+            var lastX = -1;
+            var lastY = -1;
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
@@ -140,24 +148,48 @@ namespace AOC2018.Day17
                         addRight = true;
                     }
 
-                    if ((leftY == 515 || rightY == 515))
-                    {
+                    //if ((leftY == 515 || rightY == 515))
+                    //{
 
-                    }
+                    //}
 
                     if (addLeft || addRight)
                     {
                         queue.Clear();
 
+                        bool ok = false;
+                        if (addLeft && addRight)
+                        {
+                            ok = true;
+                            seen.Remove((current.previousX, current.previousY));
+                            queue.Enqueue((current.previousX, current.previousY, current.previousX - 1, current.previousY, false, true), current.previousX);
+                        }
+
                         if (addLeft)
                         {
                             queue.Enqueue((current.x, leftY, current.previousX, current.previousY, true, false), -current.x * 2);
+                            if (!ok)
+                            {
+                                queue.Enqueue((current.previousX, leftY, current.previousX - 1, current.previousY, false, true), current.previousX);
+                            }
                         }
 
                         if (addRight)
                         {
                             queue.Enqueue((current.x, rightY, current.previousX, current.previousY, true, false), -current.x * 2);
+                            if (!ok)
+                            {
+                                queue.Enqueue((current.previousX, rightY, current.previousX - 1, current.previousY, false, true), current.previousX);
+                            }
                         }
+
+
+
+                        //if (!current.addedPrevious)
+                        //{
+                        //queue.Enqueue((current.previousX, current.previousY, current.previousX - 1, current.previousY, false, true), current.previousX);
+                        //seen.Remove((current.previousX, current.previousY - 1));
+                        //}
                     }
                     else
                     {
@@ -170,12 +202,7 @@ namespace AOC2018.Day17
                 }
             }
 
-            var temp = seen.OrderByDescending(x => x.x).ToList();
-
             Print(targetX, seen, lastX, lastY);
-
-
-
             Console.WriteLine(lastX + " " + lastY);
 
             return seen.Count - 1;
