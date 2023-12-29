@@ -38,7 +38,17 @@ namespace AOC2018.Day17
             seen.Add((0, 0));
 
             Fall(spring.x, spring.y);
-            Bfs(spring.x, spring.y);
+            var isDone = false;
+            //while (!isDone)
+            //{
+            //    isDone = Bfs(spring.x, spring.y, targetX);
+            //}
+
+            for (int i = 0; i < 6; i++)
+            {
+                isDone = Bfs(spring.x, spring.y, targetX);
+            }
+
 
             Print(targetX, seen);
 
@@ -110,22 +120,55 @@ namespace AOC2018.Day17
         {
             _data[(x, y)] = Element.STILL_WATER;
 
+            HashSet<(int x, int y)> templeft = new();
             var left = y - 1;
+            bool hasLeftFoundDown = false;
             while (!_data.TryGetValue((x, left), out var leftElement) || leftElement != Element.WALL)
             {
-                _data[(x, left)] = Element.STILL_WATER;
+                templeft.Add((x, left));
+
+                if (!_data.ContainsKey((x + 1, left)))
+                {
+                    hasLeftFoundDown = true;
+                    break;
+                }
+
                 left--;
             }
 
+            foreach (var item in templeft)
+            {
+                _data[(item.x, item.y)] = hasLeftFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+            }
+
+            HashSet<(int x, int y)> tempRight = new();
             var right = y + 1;
+            bool hasRightFoundDown = false;
             while (!_data.TryGetValue((x, right), out var rightElement) || rightElement != Element.WALL)
             {
-                _data[(x, right)] = Element.STILL_WATER;
+                tempRight.Add((x, right));
+
+                if (!_data.ContainsKey((x + 1, right)))
+                {
+                    hasRightFoundDown = true;
+                    break;
+                }
+
                 right++;
+            }
+
+            foreach (var item in tempRight)
+            {
+                _data[(item.x, item.y)] = hasRightFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+            }
+
+            if (hasLeftFoundDown || hasRightFoundDown)
+            {
+                _data[(x, y)] = Element.RUNNING_WATER;
             }
         }
 
-        private void Bfs(int x, int y)
+        private bool Bfs(int x, int y, int targetX)
         {
             if (_data[(x, y)] != Element.RUNNING_WATER)
             {
@@ -137,6 +180,7 @@ namespace AOC2018.Day17
             queue.Enqueue((x, y, true, false));
             seen.Add((x, y));
 
+            var lastX = -1;
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
@@ -182,6 +226,8 @@ namespace AOC2018.Day17
                     queue.Enqueue((current.x, current.y, current.isUpAndDown, true));
                 }
             }
+
+            return lastX == targetX;
         }
 
         private List<(int x, int y)> GetLeftAndRight(int x, int y)
