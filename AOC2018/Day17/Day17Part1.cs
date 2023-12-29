@@ -40,7 +40,7 @@ namespace AOC2018.Day17
             //    isDone = Bfs(spring.x, spring.y, targetX);
             //}
 
-            for (int i = 0; i < 88; i++)
+            for (int i = 0; i < 87; i++)
             {
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
@@ -123,7 +123,7 @@ namespace AOC2018.Day17
             return forceSpreadWater;
         }
 
-        private void SpreadWater(int x, int y, bool forceSpreadWater)
+        private void SpreadWater(int x, int y)
         {
             _data[(x, y)] = Element.STILL_WATER;
 
@@ -145,7 +145,7 @@ namespace AOC2018.Day17
 
             foreach (var item in templeft)
             {
-                _data[(item.x, item.y)] = hasLeftFoundDown && !forceSpreadWater ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[(item.x, item.y)] = hasLeftFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             HashSet<(int x, int y)> tempRight = new();
@@ -166,7 +166,7 @@ namespace AOC2018.Day17
 
             foreach (var item in tempRight)
             {
-                _data[(item.x, item.y)] = hasRightFoundDown && !forceSpreadWater ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[(item.x, item.y)] = hasRightFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             if (hasLeftFoundDown || hasRightFoundDown)
@@ -187,9 +187,6 @@ namespace AOC2018.Day17
             queue.Enqueue((x, y, true, false));
             seen.Add((x, y));
 
-
-            List<(int x, int y, bool isUpAndDown)> endOfLines = new();
-
             var lastX = -1;
             while (queue.Count > 0)
             {
@@ -197,19 +194,58 @@ namespace AOC2018.Day17
 
                 if (current.isEndOfLine)
                 {
-                    endOfLines.Add((current.x, current.y, current.isUpAndDown));
+                    if (current.x >= 110 && current.x <= 120)
+                    {
+
+                    }
 
                     if (current.isUpAndDown)
                     {
-                        SpreadWater(current.x, current.y, false);
+                        SpreadWater(current.x, current.y);
                     }
                     else
                     {
-                        lastX = current.x;
-                        var forceSpreadWater = Fall(current.x, current.y, targetX);
-                        if (forceSpreadWater)
+                        
+
+                        var nextDownX = current.x + 1;
+                        if (_data.TryGetValue((nextDownX, current.y), out var element) && element == Element.STILL_WATER)
                         {
-                            SpreadWater(current.x, current.y, forceSpreadWater);
+                            var nextLeftY = current.y - 1;
+                            while (_data.TryGetValue((nextDownX, nextLeftY), out var leftElement) && leftElement == Element.STILL_WATER)
+                            {
+                                nextLeftY--;
+                            }
+
+                            var nextRightY = current.y + 1;
+                            while (_data.TryGetValue((nextDownX, nextRightY), out var rightElement) && rightElement == Element.STILL_WATER)
+                            {
+                                nextRightY--;
+                            }
+
+                            var isLeftWall = _data[(nextDownX, nextLeftY)] == Element.WALL;
+                            var isRigthWall = _data[(nextDownX, nextRightY)] == Element.WALL;
+
+                            Console.WriteLine(nextDownX + " " + nextLeftY + " " + isLeftWall);
+                            Console.WriteLine(nextDownX + " " + nextRightY + " " + isRigthWall);
+
+                            if (isLeftWall && isRigthWall)
+                            {
+                                lastX = current.x;
+                                var forceSpreadWater = Fall(current.x, current.y, targetX);
+                                if (forceSpreadWater)
+                                {
+                                    SpreadWater(current.x, current.y);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            lastX = current.x;
+                            var forceSpreadWater = Fall(current.x, current.y, targetX);
+                            if (forceSpreadWater)
+                            {
+                                SpreadWater(current.x, current.y);
+                            }
                         }
                     }
 
