@@ -18,7 +18,8 @@ namespace AOC2018.Day17
             SAND = '.',
             WALL = '#',
             STILL_WATER = '~',
-            RUNNING_WATER = '|'
+            RUNNING_WATER = '|',
+            SPRING = '+'
         }
 
         private static readonly bool _useTestData = true;
@@ -34,30 +35,38 @@ namespace AOC2018.Day17
             (int x, int y) spring = (0, 500);
             var targetX = _data.Max(data => data.Key.x) + 1;
 
-            HashSet<(int x, int y)> seen = new();
-            seen.Add((0, 0));
-
-            Fall(spring.x, spring.y);
+            Fall(spring.x, spring.y, targetX);
             var isDone = false;
             //while (!isDone)
             //{
             //    isDone = Bfs(spring.x, spring.y, targetX);
             //}
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 11; i++)
             {
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
 
+            _data[spring] = Element.SPRING;
 
-            Print(targetX, seen);
+            sum = _data.Sum(row =>
+            {
+                if (row.Value == Element.STILL_WATER || row.Value == Element.RUNNING_WATER)
+                {
+                    return 1;
+                }
+
+                return 0;
+            });
+
+            Print(targetX);
 
             return sum;
         }
 
-        private void Print(int targetX, HashSet<(int x, int y)> seen)
+        private void Print(int targetX)
         {
-            var maxY = Math.Max(_data.Max(x => x.Key.y), seen.Max(x => x.y)) + 1;
+            var maxY = _data.Max(x => x.Key.y) + 1;
             char[][] grid = new char[targetX][];
             for (int i = 0; i < grid.Length; i++)
             {
@@ -71,11 +80,6 @@ namespace AOC2018.Day17
             foreach (var item in _data)
             {
                 grid[item.Key.x][item.Key.y] = (char)item.Value;
-            }
-
-            foreach (var item in seen.Where(temp => temp.x >= 0 && temp.y >= 0))
-            {
-                grid[item.x][item.y] = 'W';
             }
 
             if (_useTestData)
@@ -101,7 +105,7 @@ namespace AOC2018.Day17
             Console.WriteLine();
         }
 
-        private void Fall(int x, int y)
+        private void Fall(int x, int y, int targetX)
         {
             if (!_data.ContainsKey((x, y)))
             {
@@ -109,7 +113,7 @@ namespace AOC2018.Day17
             }
 
             var down = x + 1;
-            while (!_data.ContainsKey((down, y)))
+            while (!_data.ContainsKey((down, y)) && down != targetX)
             {
                 _data[(down, y)] = Element.RUNNING_WATER;
                 down++;
@@ -185,6 +189,8 @@ namespace AOC2018.Day17
             {
                 var current = queue.Dequeue();
 
+                lastX = current.x;
+
                 if (current.isEndOfLine)
                 {
                     if (current.isUpAndDown)
@@ -193,14 +199,14 @@ namespace AOC2018.Day17
                     }
                     else
                     {
-                        Fall(current.x, current.y);
+                        Fall(current.x, current.y, targetX);
                     }
 
                     continue;
                 }
 
-                var leftAndRight = GetLeftAndRight(current.x, current.y);
-                var down = GetDown(current.x, current.y);
+                var leftAndRight = GetLeftAndRight(current.x, current.y).Where(item => !seen.Contains(item)).ToList();
+                var down = GetDown(current.x, current.y).Where(item => !seen.Contains(item)).ToList();
                 if (leftAndRight.Count > 0)
                 {
                     foreach (var item in leftAndRight)
