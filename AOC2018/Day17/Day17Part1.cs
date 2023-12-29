@@ -40,7 +40,7 @@ namespace AOC2018.Day17
             //    isDone = Bfs(spring.x, spring.y, targetX);
             //}
 
-            for (int i = 0; i < 87; i++)
+            for (int i = 0; i < 88; i++)
             {
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
@@ -198,6 +198,21 @@ namespace AOC2018.Day17
                 if (current.isEndOfLine)
                 {
                     endOfLines.Add((current.x, current.y, current.isUpAndDown));
+
+                    if (current.isUpAndDown)
+                    {
+                        SpreadWater(current.x, current.y, false);
+                    }
+                    else
+                    {
+                        lastX = current.x;
+                        var forceSpreadWater = Fall(current.x, current.y, targetX);
+                        if (forceSpreadWater)
+                        {
+                            SpreadWater(current.x, current.y, forceSpreadWater);
+                        }
+                    }
+
                     continue;
                 }
 
@@ -229,41 +244,39 @@ namespace AOC2018.Day17
                 }
             }
 
+            //foreach (var group in endOfLines.GroupBy(temp => temp.x))
+            //{
+            //    var temp = group.ToList();
 
-            var groups = endOfLines.GroupBy(temp => temp.x);
-            foreach (var group in groups)
-            {
-                var temp = group.ToList();
+            //    if (temp.Count > 1)
+            //    {
+            //        var falls = group.Where(x => x.isUpAndDown).OrderBy(temp => temp.y).ToList();
+            //        if (falls.Count > 1)
+            //        {
+            //            var first = falls.First();
+            //            falls = falls.Where(temp => Math.Abs(first.y - temp.y) <= 15).ToList();
+            //        }
+            //        falls.AddRange(group.Where(temp => !temp.isUpAndDown));
+            //        temp = falls;
+            //    }
 
-                if (temp.Count > 1)
-                {
-                    var falls = group.Where(x => x.isUpAndDown).OrderBy(temp => temp.y).ToList();
-                    if (falls.Count > 1)
-                    {
-                        var first = falls.First();
-                        falls = falls.Where(temp => Math.Abs(first.y - temp.y) <= 15).ToList();
-                    }
-                    falls.AddRange(group.Where(temp => !temp.isUpAndDown));
-                    temp = falls;
-                }
-
-                foreach (var current in temp)
-                {
-                    if (current.isUpAndDown)
-                    {
-                        SpreadWater(current.x, current.y, false);
-                    }
-                    else
-                    {
-                        lastX = current.x;
-                        var forceSpreadWater = Fall(current.x, current.y, targetX);
-                        if (forceSpreadWater)
-                        {
-                            SpreadWater(current.x, current.y, forceSpreadWater);
-                        }
-                    }
-                }
-            }
+            //    foreach (var current in temp)
+            //    {
+            //        if (current.isUpAndDown)
+            //        {
+            //            SpreadWater(current.x, current.y, false);
+            //        }
+            //        else
+            //        {
+            //            lastX = current.x;
+            //            var forceSpreadWater = Fall(current.x, current.y, targetX);
+            //            if (forceSpreadWater)
+            //            {
+            //                SpreadWater(current.x, current.y, forceSpreadWater);
+            //            }
+            //        }
+            //    }
+            //}
 
             return lastX == targetX - 1;
         }
