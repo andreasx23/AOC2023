@@ -22,12 +22,10 @@ namespace AOC2018.Day17
             SPRING = '+'
         }
 
-        private static readonly bool _useTestData = true;
+        private static readonly bool _useTestData = false;
         private static readonly string _className = "Day17";
         private Dictionary<(int x, int y), Element> _data = new();
-        //private HashSet<(int x, int y)> _data = new();
 
-        // https://adventofcode.com/2018/day/17
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -42,7 +40,7 @@ namespace AOC2018.Day17
             //    isDone = Bfs(spring.x, spring.y, targetX);
             //}
 
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < 87; i++)
             {
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
@@ -105,29 +103,34 @@ namespace AOC2018.Day17
             Console.WriteLine();
         }
 
-        private void Fall(int x, int y, int targetX)
+        private bool Fall(int x, int y, int targetX)
         {
+            bool forceSpreadWater = true;
             if (!_data.ContainsKey((x, y)))
             {
+                forceSpreadWater = false;
                 _data[(x, y)] = Element.RUNNING_WATER;
             }
 
             var down = x + 1;
             while (!_data.ContainsKey((down, y)) && down != targetX)
             {
+                forceSpreadWater = false;
                 _data[(down, y)] = Element.RUNNING_WATER;
                 down++;
             }
+
+            return forceSpreadWater;
         }
 
-        private void SpreadWater(int x, int y)
+        private void SpreadWater(int x, int y, bool forceSpreadWater)
         {
             _data[(x, y)] = Element.STILL_WATER;
 
             HashSet<(int x, int y)> templeft = new();
             var left = y - 1;
             bool hasLeftFoundDown = false;
-            while (!_data.TryGetValue((x, left), out var leftElement) || leftElement != Element.WALL)
+            while (!_data.TryGetValue((x, left), out var leftElement) || leftElement != Element.WALL && leftElement != Element.RUNNING_WATER)
             {
                 templeft.Add((x, left));
 
@@ -142,13 +145,13 @@ namespace AOC2018.Day17
 
             foreach (var item in templeft)
             {
-                _data[(item.x, item.y)] = hasLeftFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[(item.x, item.y)] = hasLeftFoundDown && !forceSpreadWater ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             HashSet<(int x, int y)> tempRight = new();
             var right = y + 1;
             bool hasRightFoundDown = false;
-            while (!_data.TryGetValue((x, right), out var rightElement) || rightElement != Element.WALL)
+            while (!_data.TryGetValue((x, right), out var rightElement) || rightElement != Element.WALL && rightElement != Element.RUNNING_WATER)
             {
                 tempRight.Add((x, right));
 
@@ -163,7 +166,7 @@ namespace AOC2018.Day17
 
             foreach (var item in tempRight)
             {
-                _data[(item.x, item.y)] = hasRightFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[(item.x, item.y)] = hasRightFoundDown && !forceSpreadWater ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             if (hasLeftFoundDown || hasRightFoundDown)
@@ -184,24 +187,17 @@ namespace AOC2018.Day17
             queue.Enqueue((x, y, true, false));
             seen.Add((x, y));
 
+
+            List<(int x, int y, bool isUpAndDown)> endOfLines = new();
+
             var lastX = -1;
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
 
-                lastX = current.x;
-
                 if (current.isEndOfLine)
                 {
-                    if (current.isUpAndDown)
-                    {
-                        SpreadWater(current.x, current.y);
-                    }
-                    else
-                    {
-                        Fall(current.x, current.y, targetX);
-                    }
-
+                    endOfLines.Add((current.x, current.y, current.isUpAndDown));
                     continue;
                 }
 
@@ -233,7 +229,43 @@ namespace AOC2018.Day17
                 }
             }
 
-            return lastX == targetX;
+
+            var groups = endOfLines.GroupBy(temp => temp.x);
+            foreach (var group in groups)
+            {
+                var temp = group.ToList();
+
+                if (temp.Count > 1)
+                {
+                    var falls = group.Where(x => x.isUpAndDown).OrderBy(temp => temp.y).ToList();
+                    if (falls.Count > 1)
+                    {
+                        var first = falls.First();
+                        falls = falls.Where(temp => Math.Abs(first.y - temp.y) <= 15).ToList();
+                    }
+                    falls.AddRange(group.Where(temp => !temp.isUpAndDown));
+                    temp = falls;
+                }
+
+                foreach (var current in temp)
+                {
+                    if (current.isUpAndDown)
+                    {
+                        SpreadWater(current.x, current.y, false);
+                    }
+                    else
+                    {
+                        lastX = current.x;
+                        var forceSpreadWater = Fall(current.x, current.y, targetX);
+                        if (forceSpreadWater)
+                        {
+                            SpreadWater(current.x, current.y, forceSpreadWater);
+                        }
+                    }
+                }
+            }
+
+            return lastX == targetX - 1;
         }
 
         private List<(int x, int y)> GetLeftAndRight(int x, int y)
