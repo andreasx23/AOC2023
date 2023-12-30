@@ -35,22 +35,23 @@ namespace AOC2018.Day17
 
             Fall(spring.x, spring.y, targetX);
             var isDone = false;
-            //while (!isDone)
-            //{
-            //    isDone = Bfs(spring.x, spring.y, targetX);
-            //}
-
-            for (int i = 0; i < 387; i++)
+            while (!isDone)
             {
-                if (i == 386)
-                {
-
-                }
-
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
 
+            //for (int i = 0; i < 387; i++)
+            //{
+            //    if (i == 386)
+            //    {
+
+            //    }
+
+            //    isDone = Bfs(spring.x, spring.y, targetX);
+            //}
+
             _data[spring] = Element.SPRING;
+            CleanupWronglyPlacedWater();
 
             sum = _data.Sum(row =>
             {
@@ -65,6 +66,48 @@ namespace AOC2018.Day17
             Print(targetX);
 
             return sum;
+        }
+
+        private void CleanupWronglyPlacedWater()
+        {
+            var groups = _data.GroupBy(d => d.Key.x);
+            foreach (var group in groups)
+            {
+                var runningWater = group.Where(d => d.Value == Element.RUNNING_WATER)
+                                        .OrderBy(d => d.Key.y)
+                                        .ToList();
+                for (int i = 1; i < runningWater.Count; i++)
+                {
+                    var current = runningWater[i - 1];
+                    var next = runningWater[i];
+                    List<(int x, int y)> stillWaterIndexes = new();
+                    for (int y = current.Key.y + 1; y < next.Key.y; y++)
+                    {
+                        if (!_data.TryGetValue((current.Key.x, y), out var element) || element != Element.STILL_WATER)
+                        {
+                            stillWaterIndexes.Clear();
+                            break;
+                        }
+
+                        stillWaterIndexes.Add((current.Key.x, y));
+                    }
+
+                    if (stillWaterIndexes.Count > 0)
+                    {
+                        foreach (var item in stillWaterIndexes)
+                        {
+                            if (_data.TryGetValue((item.x - 1, item.y), out var element) && element == Element.RUNNING_WATER)
+                            {
+                                _data[item] = Element.RUNNING_WATER;
+                            }
+                            else
+                            {
+                                _data[item] = Element.SAND;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void Print(int targetX)
