@@ -22,7 +22,7 @@ namespace AOC2018.Day17
             SPRING = '+'
         }
 
-        private static readonly bool _useTestData = false;
+        private static readonly bool _useTestData = true;
         private static readonly string _className = "Day17";
         private Dictionary<(int x, int y), Element> _data = new();
 
@@ -46,8 +46,7 @@ namespace AOC2018.Day17
                 Bfs(spring.x, spring.y, targetX);
             }
 
-            _data[spring] = Element.SPRING;
-            CleanupWronglyPlacedWater();
+            CleanupWronglyPlacedWater(spring);
 
             sum = _data.Sum(row =>
             {
@@ -64,8 +63,12 @@ namespace AOC2018.Day17
             return sum;
         }
 
-        private void CleanupWronglyPlacedWater()
+        private void CleanupWronglyPlacedWater((int x, int y) spring)
         {
+            // Place spring
+            _data[spring] = Element.SPRING;
+
+            // Fix wrongly placed water between running water
             var groups = _data.GroupBy(d => d.Key.x);
             foreach (var group in groups)
             {
@@ -105,6 +108,7 @@ namespace AOC2018.Day17
                 }
             }
 
+            // Fix wrongly placed running water at the last row
             var lastX = _data.Max(kv => kv.Key.x);
             var lastXGroup = groups.First(g => g.Key == lastX);
             foreach (var item in lastXGroup)
