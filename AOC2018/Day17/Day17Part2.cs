@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AOC2018.Day17
 {
-    public class Day17Part1
+    public class Day17Part2
     {
         enum Element
         {
@@ -47,7 +47,7 @@ namespace AOC2018.Day17
                                     .ThenBy(kv => kv.Key.y)
                                     .First().Key.x;
             sum = _data.Where(kv => kv.Key.x >= minimumWallX)
-                       .Count(kv => kv.Value == Element.STILL_WATER || kv.Value == Element.RUNNING_WATER);
+                       .Count(kv => kv.Value == Element.STILL_WATER);
 
             //Print();
 
