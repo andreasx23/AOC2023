@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AOC2018.Day17
 {
@@ -119,16 +118,17 @@ namespace AOC2018.Day17
             var lastXGroup = groups.First(g => g.Key == lastX);
             foreach (var item in lastXGroup.Where(kv => kv.Value != Element.CLAY))
             {
-                if (item.Value == Element.STILL_WATER)
+                switch (item.Value)
                 {
-                    _data[(item.Key.x, item.Key.y)] = Element.SAND;
-                }
-                else if (item.Value == Element.RUNNING_WATER)
-                {
-                    if (!_data.TryGetValue((item.Key.x - 1, item.Key.y), out var element) || element != Element.RUNNING_WATER)
-                    {
+                    case Element.STILL_WATER:
                         _data[(item.Key.x, item.Key.y)] = Element.SAND;
-                    }
+                        break;
+                    case Element.RUNNING_WATER:
+                        if (!_data.TryGetValue((item.Key.x - 1, item.Key.y), out var element) || element != Element.RUNNING_WATER)
+                        {
+                            _data[(item.Key.x, item.Key.y)] = Element.SAND;
+                        }
+                        break;
                 }
             }
         }
@@ -425,7 +425,6 @@ namespace AOC2018.Day17
                     default:
                         throw new Exception();
                 }
-
             }
         }
     }
