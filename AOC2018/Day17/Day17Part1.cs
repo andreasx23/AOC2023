@@ -47,13 +47,8 @@ namespace AOC2018.Day17
         private static readonly string _className = "Day17";
         private Dictionary<(int x, int y), Element> _data = new();
 
-        // 41711 To low
-        // 41711 Not the right answer
-
-        // 41711
-
+        // part 1: 42389
         // 42393 Not the right answer
-        // 42394 Not the right answer
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -72,7 +67,7 @@ namespace AOC2018.Day17
 
             sum = _data.Count(kv => kv.Value == Element.STILL_WATER || kv.Value == Element.RUNNING_WATER);
 
-            Print(targetX);
+            Print();
 
             return sum;
         }
@@ -112,14 +107,6 @@ namespace AOC2018.Day17
                         foreach (var item in stillWaterIndexes)
                         {
                             _data[item] = Element.RUNNING_WATER;
-                            //if (_data.TryGetValue((item.x - 1, item.y), out var element) && element == Element.RUNNING_WATER)
-                            //{
-                            //    _data[item] = Element.RUNNING_WATER;
-                            //}
-                            //else
-                            //{
-                            //    _data[item] = Element.SAND;
-                            //}
                         }
                     }
                 }
@@ -143,10 +130,11 @@ namespace AOC2018.Day17
             }
         }
 
-        private void Print(int targetX)
+        private void Print()
         {
+            var maxX = _data.Max(x => x.Key.x) + 1;
             var maxY = _data.Max(x => x.Key.y) + 1;
-            char[][] grid = new char[targetX][];
+            char[][] grid = new char[maxX][];
             for (int i = 0; i < grid.Length; i++)
             {
                 grid[i] = new char[maxY];
@@ -172,7 +160,7 @@ namespace AOC2018.Day17
             {
                 foreach (var item in grid)
                 {
-                    Console.WriteLine(string.Join("", item.Skip(100)));
+                    Console.WriteLine(string.Join("", item));
                 }
             }
         }
@@ -219,7 +207,7 @@ namespace AOC2018.Day17
 
             foreach (var item in templeft)
             {
-                _data[(item.x, item.y)] = hasLeftFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[item] = hasLeftFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             HashSet<(int x, int y)> tempRight = new();
@@ -240,7 +228,7 @@ namespace AOC2018.Day17
 
             foreach (var item in tempRight)
             {
-                _data[(item.x, item.y)] = hasRightFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
+                _data[item] = hasRightFoundDown ? Element.RUNNING_WATER : Element.STILL_WATER;
             }
 
             if (hasLeftFoundDown || hasRightFoundDown)
