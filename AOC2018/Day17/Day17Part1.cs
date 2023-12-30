@@ -22,12 +22,38 @@ namespace AOC2018.Day17
             SPRING = '+'
         }
 
+        /*
+         * Known bug:
+         * 
+         * First row should all be running water instead of still water into running water
+         * 
+         * Wrong:
+         * #~~~~~~~~~~~~~~~~||||||||
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * ########################|
+         * 
+         * Correct:
+         * #||||||||||||||||||||||||
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * #~~~~~~~~~~~~~~~~~~~~~~#|
+         * ########################|
+         * 
+         */
+
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day17";
         private Dictionary<(int x, int y), Element> _data = new();
 
         // 41711 To low
         // 41711 Not the right answer
+
+        // 41711
+
+        // 42393 Not the right answer
+        // 42394 Not the right answer
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -44,15 +70,7 @@ namespace AOC2018.Day17
 
             CleanupWronglyPlacedWater(spring);
 
-            sum = _data.Sum(row =>
-            {
-                if (row.Value == Element.STILL_WATER || row.Value == Element.RUNNING_WATER)
-                {
-                    return 1;
-                }
-
-                return 0;
-            });
+            sum = _data.Count(kv => kv.Value == Element.STILL_WATER || kv.Value == Element.RUNNING_WATER);
 
             Print(targetX);
 
@@ -64,9 +82,11 @@ namespace AOC2018.Day17
             // Place spring
             _data[spring] = Element.SPRING;
 
-            // Fix wrongly placed water between running water
             var groups = _data.GroupBy(d => d.Key.x);
-            foreach (var group in groups)
+            var lastX = _data.Max(kv => kv.Key.x);
+
+            // Fix wrongly placed water between running water
+            foreach (var group in groups.Where(kv => kv.Key != lastX))
             {
                 var runningWater = group.Where(d => d.Value == Element.RUNNING_WATER)
                                         .OrderBy(d => d.Key.y)
@@ -91,27 +111,34 @@ namespace AOC2018.Day17
                     {
                         foreach (var item in stillWaterIndexes)
                         {
-                            if (_data.TryGetValue((item.x - 1, item.y), out var element) && element == Element.RUNNING_WATER)
-                            {
-                                _data[item] = Element.RUNNING_WATER;
-                            }
-                            else
-                            {
-                                _data[item] = Element.SAND;
-                            }
+                            _data[item] = Element.RUNNING_WATER;
+                            //if (_data.TryGetValue((item.x - 1, item.y), out var element) && element == Element.RUNNING_WATER)
+                            //{
+                            //    _data[item] = Element.RUNNING_WATER;
+                            //}
+                            //else
+                            //{
+                            //    _data[item] = Element.SAND;
+                            //}
                         }
                     }
                 }
             }
 
-            // Fix wrongly placed running water at the last row
-            var lastX = _data.Max(kv => kv.Key.x);
+            // Fix wrongly placed water at the last row
             var lastXGroup = groups.First(g => g.Key == lastX);
-            foreach (var item in lastXGroup.Where(g => g.Value == Element.RUNNING_WATER))
+            foreach (var item in lastXGroup.Where(kv => kv.Value != Element.CLAY))
             {
-                if (!_data.TryGetValue((item.Key.x - 1, item.Key.y), out var element) || element != Element.RUNNING_WATER)
+                if (item.Value == Element.STILL_WATER)
                 {
                     _data[(item.Key.x, item.Key.y)] = Element.SAND;
+                }
+                else if (item.Value == Element.RUNNING_WATER)
+                {
+                    if (!_data.TryGetValue((item.Key.x - 1, item.Key.y), out var element) || element != Element.RUNNING_WATER)
+                    {
+                        _data[(item.Key.x, item.Key.y)] = Element.SAND;
+                    }
                 }
             }
         }
@@ -145,7 +172,7 @@ namespace AOC2018.Day17
             {
                 foreach (var item in grid)
                 {
-                    Console.WriteLine(string.Join("", item.Skip(350)));
+                    Console.WriteLine(string.Join("", item.Skip(100)));
                 }
             }
         }
