@@ -26,6 +26,7 @@ namespace AOC2018.Day17
         private static readonly string _className = "Day17";
         private Dictionary<(int x, int y), Element> _data = new();
 
+        // 30295 To low
         public long Solve(Stopwatch watch)
         {
             var sum = 0L;
@@ -40,15 +41,10 @@ namespace AOC2018.Day17
                 isDone = Bfs(spring.x, spring.y, targetX);
             }
 
-            //for (int i = 0; i < 387; i++)
-            //{
-            //    if (i == 386)
-            //    {
-
-            //    }
-
-            //    isDone = Bfs(spring.x, spring.y, targetX);
-            //}
+            for (int i = 0; i < 20; i++)
+            {
+                Bfs(spring.x, spring.y, targetX);
+            }
 
             _data[spring] = Element.SPRING;
             CleanupWronglyPlacedWater();
@@ -106,6 +102,21 @@ namespace AOC2018.Day17
                             }
                         }
                     }
+                }
+            }
+
+            var lastX = _data.Max(kv => kv.Key.x);
+            var lastXGroup = groups.First(g => g.Key == lastX);
+            foreach (var item in lastXGroup)
+            {
+                if (item.Value != Element.RUNNING_WATER)
+                {
+                    continue;
+                }
+
+                if (!_data.TryGetValue((item.Key.x - 1, item.Key.y), out var element) || element != Element.RUNNING_WATER)
+                {
+                    _data[(item.Key.x, item.Key.y)] = Element.SAND;
                 }
             }
         }
@@ -228,7 +239,7 @@ namespace AOC2018.Day17
             queue.Enqueue((x, y, true, false));
             seen.Add((x, y));
 
-            var lastX = -1;
+            List<int> lastXs = new();
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
@@ -267,7 +278,8 @@ namespace AOC2018.Day17
                     }
                     else
                     {
-                        lastX = current.x;
+                        lastXs.Add(current.x);
+
                         var forceSpreadWater = Fall(current.x, current.y, targetX);
                         if (forceSpreadWater)
                         {
@@ -306,41 +318,7 @@ namespace AOC2018.Day17
                 }
             }
 
-            //foreach (var group in endOfLines.GroupBy(temp => temp.x))
-            //{
-            //    var temp = group.ToList();
-
-            //    if (temp.Count > 1)
-            //    {
-            //        var falls = group.Where(x => x.isUpAndDown).OrderBy(temp => temp.y).ToList();
-            //        if (falls.Count > 1)
-            //        {
-            //            var first = falls.First();
-            //            falls = falls.Where(temp => Math.Abs(first.y - temp.y) <= 15).ToList();
-            //        }
-            //        falls.AddRange(group.Where(temp => !temp.isUpAndDown));
-            //        temp = falls;
-            //    }
-
-            //    foreach (var current in temp)
-            //    {
-            //        if (current.isUpAndDown)
-            //        {
-            //            SpreadWater(current.x, current.y, false);
-            //        }
-            //        else
-            //        {
-            //            lastX = current.x;
-            //            var forceSpreadWater = Fall(current.x, current.y, targetX);
-            //            if (forceSpreadWater)
-            //            {
-            //                SpreadWater(current.x, current.y, forceSpreadWater);
-            //            }
-            //        }
-            //    }
-            //}
-
-            return lastX == targetX - 1;
+            return lastXs.Count > 0 && lastXs.All(x => x == targetX - 1);
         }
 
         private List<(int x, int y)> GetLeftAndRight(int x, int y)
