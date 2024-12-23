@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace AOC2024.Day21
@@ -31,168 +29,132 @@ namespace AOC2024.Day21
             (-1, 0, '^')
         };
 
-        private readonly object _lockSum = new();
-        private readonly object _lockRobot3 = new();
-
-        private long Solve2(Stopwatch watch)
-        {
-            var sum = 0L;
-
-            Dictionary<(int x, int y), List<(int x, int y, string result)>> numericKeypad = new();
-
-            for (int i = 0; i < _numericKeypad.Length; i++)
-            {
-                for (int j = 0; j < _numericKeypad[i].Length; j++)
-                {
-                    for (int k = 0; k < _numericKeypad.Length; k++)
-                    {
-                        for (int x = 0; x < _numericKeypad[k].Length; x++)
-                        {
-                            numericKeypad[(i, j)] = [];
-
-                            if (_numericKeypad[i][j] == ' ' || _numericKeypad[k][x] == ' ')
-                            {
-                                continue;
-                            }
-
-                            if (i == k && j == x)
-                            {
-                                numericKeypad[(i, j)].Add((i, j, "A"));
-                            }
-                            else
-                            {
-                                var dfs2 = Dfs2(i, j, k, x, _numericKeypad) + "A";
-                                Console.WriteLine($"{i} {j} {dfs2}");
-                            }
-
-                        }
-                    }
-                }
-            }
-
-            return sum;
-        }
-
-        private string Dfs2(int x, int y, int targetX, int targetY, char[][] grid)
-        {
-            PriorityQueue<(int x, int y, int moves, HashSet<(int x, int y)> seen, int index, StringBuilder stringOfMoves), int> queue = new();
-            var seen = new HashSet<(int x, int y)>()
-            {
-                (x, y)
-            };
-            queue.Enqueue((x, y, 0, seen, 0, new StringBuilder()), 0);
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-
-                if (current.x == targetX && current.y == targetY)
-                {
-                    return current.stringOfMoves.ToString();
-                }
-
-                foreach (var item in PossibleDirections(current.x, current.y, grid))
-                {
-                    if (current.seen.Add((item.x, item.y)))
-                    {
-                        var nextStringOfMoves = new StringBuilder(current.stringOfMoves.ToString());
-                        nextStringOfMoves.Append(item.direction);
-                        queue.Enqueue((item.x, item.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, nextStringOfMoves), 0);
-                    }
-                }
-            }
-
-            throw new Exception();
-        }
-
         private long Solve(Stopwatch watch)
         {
             var sum = 0L;
 
-            Dictionary<char, (int x, int y)> targetNumericKeypad = new();
-            for (int i = 0; i < _numericKeypad.Length; i++)
-            {
-                for (int j = 0; j < _numericKeypad[i].Length; j++)
-                {
-                    targetNumericKeypad.Add(_numericKeypad[i][j], (i, j));
-                }
-            }
-
-            Dictionary<char, (int x, int y)> targetDirectionalKeypad = new();
-            for (int i = 0; i < _directionalKeypad.Length; i++)
-            {
-                for (int j = 0; j < _directionalKeypad[i].Length; j++)
-                {
-                    targetDirectionalKeypad.Add(_directionalKeypad[i][j], (i, j));
-                }
-            }
-
-            //Parallel.ForEach(_data, row =>
-            //{
-            //    var robot1Results = Dfs(_numericKeypad.Length - 1, _numericKeypad.Last().Length - 1, row, _numericKeypad, targetNumericKeypad);
-
-            //    var robot2Results = new List<string>();
-            //    foreach (var robot1 in robot1Results)
-            //    {
-            //        var robot2 = Dfs(0, _directionalKeypad.First().Length - 1, robot1, _directionalKeypad, targetDirectionalKeypad);
-            //        robot2Results.AddRange(robot2);
-            //    }
-
-            //    var robot3Result = int.MaxValue;
-            //    Parallel.ForEach(robot2Results, robot2 =>
-            //    {
-            //        var robot3 = Dfs(0, _directionalKeypad.First().Length - 1, robot2, _directionalKeypad, targetDirectionalKeypad);
-            //        lock (_lockRobot3)
-            //        {
-            //            var minRobot3 = robot3.Min(x => x.Length);
-            //            if (robot3Result > minRobot3)
-            //            {
-            //                robot3Result = minRobot3;
-            //            }
-            //        }
-            //    });
-
-            //    lock (_lockSum)
-            //    {
-            //        sum += robot3Result * int.Parse(row.Substring(0, 3));
-            //        Console.WriteLine($"Current sum: {sum} -- Done: {row}");
-            //    }
-            //});
+            Dictionary<(char current, char target), List<string>> numericKeypadDict = GenerateFromToTargetDict(_numericKeypad);
+            Dictionary<(char current, char target), List<string>> directionalDict = GenerateFromToTargetDict(_directionalKeypad);
 
             foreach (var row in _data)
             {
-                var robot1Results = Dfs(_numericKeypad.Length - 1, _numericKeypad.Last().Length - 1, row, _numericKeypad, targetNumericKeypad);
+                List<string> robot1Results = GenerateRobotResults(numericKeypadDict, row);
 
-                var robot2Results = new List<string>();
-                foreach (var robot1 in robot1Results)
+                List<string> allRobot2Results = [];
+                foreach (var robot2 in robot1Results)
                 {
-                    var robot2 = Dfs(0, _directionalKeypad.First().Length - 1, robot1, _directionalKeypad, targetDirectionalKeypad);
-                    robot2Results.AddRange(robot2);
+                    var robot2Results = GenerateRobotResults(directionalDict, robot2);
+                    allRobot2Results.AddRange(robot2Results);
                 }
 
-                var robot3Result = int.MaxValue;
-                Parallel.ForEach(robot2Results.Take(10), robot2 =>
+                List<string> allRobot3Results = [];
+                foreach (var robot3 in allRobot2Results)
                 {
-                    var robot3 = Dfs(0, _directionalKeypad.First().Length - 1, robot2, _directionalKeypad, targetDirectionalKeypad);
-                    lock (_lockRobot3)
-                    {
-                        var minRobot3 = robot3.Min(x => x.Length);
-                        if (robot3Result > minRobot3)
-                        {
-                            robot3Result = minRobot3;
-                            Console.WriteLine($"Current low: {robot3Result} -- Running: {row}");
-                        }
-                    }
-                });
+                    var robot3Results = GenerateRobotResults(directionalDict, robot3);
+                    allRobot3Results.AddRange(robot3Results);
+                }
 
-                sum += robot3Result * int.Parse(row.Substring(0, 3));
-                Console.WriteLine($"Current sum: {sum} -- Done: {row}");
+                sum += int.Parse(row[..3]) * allRobot3Results.Min(x => x.Length);
             }
+
+            Console.WriteLine("GOAL: 126384");
 
             return sum;
         }
 
-        private List<string> Dfs(int x, int y, string target, char[][] grid, Dictionary<char, (int x, int y)> targetCoordinates)
+        private static List<string> GenerateRobotResults(Dictionary<(char current, char target), List<string>> numericKeypadDict, string row)
+        {
+            List<string> robotResults = [];
+            var fromRobot1Char = 'A';
+            var isFirstRun = true;
+            foreach (var targetRobot1Char in row)
+            {
+                var key = (fromRobot1Char, targetRobot1Char);
+                var shortestPaths = numericKeypadDict[key];
+                fromRobot1Char = targetRobot1Char;
+                if (isFirstRun)
+                {
+                    isFirstRun = false;
+                    robotResults.AddRange(shortestPaths);
+                }
+                else if (robotResults.Count == shortestPaths.Count)
+                {
+                    for (int i = 0; i < robotResults.Count; i++)
+                    {
+                        robotResults[i] += shortestPaths[i];
+                    }
+                }
+                else if (shortestPaths.Count > robotResults.Count)
+                {
+                    List<string> temp = new List<string>();
+                    for (int i = 0; i < shortestPaths.Count; i++)
+                    {
+                        for (int j = 0; j < robotResults.Count; j++)
+                        {
+                            temp.Add($"{robotResults[j]}{shortestPaths[i]}");
+                        }
+                    }
+                    robotResults = temp;
+                }
+                else
+                {
+                    List<string> temp = new List<string>();
+                    for (int i = 0; i < robotResults.Count; i++)
+                    {
+                        for (int j = 0; j < shortestPaths.Count; j++)
+                        {
+                            temp.Add($"{robotResults[i]}{shortestPaths[j]}");
+                        }
+                    }
+                    robotResults = temp;
+                }
+            }
+
+            return robotResults;
+        }
+
+        private Dictionary<(char current, char target), List<string>> GenerateFromToTargetDict(char[][] grid)
+        {
+            Dictionary<(char current, char target), List<string>> fromToTargetDict = new();
+            for (int x = 0; x < grid.Length; x++)
+            {
+                for (int y = 0; y < grid[x].Length; y++)
+                {
+                    for (int targetX = 0; targetX < grid.Length; targetX++)
+                    {
+                        for (int targetY = 0; targetY < grid[targetX].Length; targetY++)
+                        {
+                            if (grid[x][y] == ' ' || grid[targetX][targetY] == ' ')
+                            {
+                                continue;
+                            }
+
+                            var current = grid[x][y];
+                            var target = grid[targetX][targetY];
+                            var key = (current, target);
+                            if (!fromToTargetDict.ContainsKey(key))
+                            {
+                                fromToTargetDict[key] = [];
+                            }
+
+                            if (x == targetX && y == targetY)
+                            {
+                                fromToTargetDict[key].Add("A");
+                            }
+                            else
+                            {
+                                var shortestPaths = FindShortestPaths(x, y, targetX, targetY, grid);
+                                fromToTargetDict[key].AddRange(shortestPaths);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return fromToTargetDict;
+        }
+
+        private List<string> FindShortestPaths(int x, int y, int targetX, int targetY, char[][] grid)
         {
             PriorityQueue<(int x, int y, int moves, HashSet<(int x, int y)> seen, int index, StringBuilder stringOfMoves), int> queue = new();
             var seen = new HashSet<(int x, int y)>()
@@ -208,47 +170,34 @@ namespace AOC2024.Day21
             {
                 var current = queue.Dequeue();
 
-                if (grid[current.x][current.y] == target[current.index])
+                if (current.x == targetX && current.y == targetY)
                 {
                     current.seen.Clear();
                     current.stringOfMoves.Append("A");
 
-                    if (current.index == target.Length - 1 && target[current.index] == 'A')
+                    if (lowestMoveCount > current.moves)
                     {
-                        if (lowestMoveCount > current.moves)
-                        {
-                            lowestMoveCount = current.moves;
-                            total = 1;
-                            possibleMoves.Clear();
-                            possibleMoves.Add(current.stringOfMoves);
-                        }
-                        else if (lowestMoveCount == current.moves)
-                        {
-                            total++;
-                            possibleMoves.Add(current.stringOfMoves);
-                        }
-
-                        continue;
+                        lowestMoveCount = current.moves;
+                        total = 1;
+                        possibleMoves.Clear();
+                        possibleMoves.Add(current.stringOfMoves);
+                    }
+                    else if (lowestMoveCount == current.moves)
+                    {
+                        total++;
+                        possibleMoves.Add(current.stringOfMoves);
                     }
 
-                    current.index++;
-                    if (target[current.index - 1] == target[current.index])
-                    {
-                        var targetCoordinate = targetCoordinates[target[current.index]];
-                        var lowestDistanceToTarget = ManhattenDistance(current.x, current.y, targetCoordinate.x, targetCoordinate.y);
-                        queue.Enqueue((current.x, current.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, current.stringOfMoves), lowestDistanceToTarget);
-                    }
+                    continue;
                 }
 
                 foreach (var item in PossibleDirections(current.x, current.y, grid))
                 {
                     if (current.seen.Add((item.x, item.y)))
                     {
-                        var targetCoordinate = targetCoordinates[target[current.index]];
-                        var lowestDistanceToTarget = ManhattenDistance(item.x, item.y, targetCoordinate.x, targetCoordinate.y);
                         var nextStringOfMoves = new StringBuilder(current.stringOfMoves.ToString());
                         nextStringOfMoves.Append(item.direction);
-                        queue.Enqueue((item.x, item.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, nextStringOfMoves), lowestDistanceToTarget);
+                        queue.Enqueue((item.x, item.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, nextStringOfMoves), 0);
                     }
                 }
             }
@@ -287,7 +236,7 @@ namespace AOC2024.Day21
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             ReadData();
-            var result = Solve2(stopwatch);
+            var result = Solve(stopwatch);
             Console.WriteLine($"Your answer: {result} -- Took: {stopwatch.Elapsed}");
         }
 
