@@ -48,7 +48,7 @@ namespace AOC2024.Day21
                 {
                     var results = DirectionalRobotResults(currentResults, targetDirectionalKeypad);
                     currentResults = new List<string>(results);
-                    Console.WriteLine($"Current amount of results: {currentResults.Count} -- Running: {row} -- Current robot: {i + 1}");
+                    Console.WriteLine($"Current amount of results: {currentResults.Count} -- Running: {row} -- Current robot: {i + 1} -- First str: {results.First()} -- Current length: {results.First().Length}");
                 }
 
                 newWatch = Stopwatch.StartNew();
@@ -150,11 +150,6 @@ namespace AOC2024.Day21
                         }
 
                         continue;
-                    }
-
-                    if (watch.Elapsed.TotalSeconds >= maxSecondsBeforeKill)
-                    {
-                        break;
                     }
 
                     current.index++;

@@ -1,10 +1,11 @@
 ﻿using AOC2024.Day21;
+using AOC2024.Day23;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
-        Day21Part2 day = new();
+        Day23Part2 day = new();
         day.Result();
     }
 }
