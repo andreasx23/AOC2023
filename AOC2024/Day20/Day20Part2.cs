@@ -4,7 +4,7 @@ namespace AOC2024.Day20
 {
     public class Day20Part2
     {
-        private const int MAX_CHEATS = 2;
+        private const int MAX_CHEATS = 20;
 
         private static readonly bool _useTestData = true;
         private static readonly string _className = "Day20";
@@ -30,7 +30,7 @@ namespace AOC2024.Day20
                                                                .ToDictionary(x => x.Key, x => x.Value);
             var max = bfs.First().Key;
             sum = bfs.Skip(1)
-                     .Where(x => max - x.Key >= (!_useTestData ? 100 : 64))
+                     .Where(x => max - x.Key >= (!_useTestData ? 100 : 76))
                      .Sum(x => x.Value);
 
             return sum;
@@ -55,9 +55,9 @@ namespace AOC2024.Day20
 
         private Dictionary<int, int> Bfs(int x, int y, int targetX, int targetY)
         {
-            PriorityQueue<(int x, int y, int steps, HashSet<(int x, int y)> visisted, bool hasCheated, int isCheating), int> queue = new();
+            PriorityQueue<(int x, int y, int steps, HashSet<(int x, int y)> visisted, bool hasCheated, bool isCheating, int cheatCount), int> queue = new();
 
-            queue.Enqueue((x, y, 0, new HashSet<(int x, int y)>() { (x, y) }, false, 0), ManhattenDistance(x, y, targetX, targetY));
+            queue.Enqueue((x, y, 0, new HashSet<(int x, int y)>() { (x, y) }, false, false, 0), ManhattenDistance(x, y, targetX, targetY));
 
             Dictionary<int, int> counter = new();
             while (queue.Count > 0)
@@ -81,29 +81,35 @@ namespace AOC2024.Day20
                     {
                         if (!current.visisted.Contains(item))
                         {
-                            if (current.isCheating < MAX_CHEATS)
+                            if (current.isCheating && current.cheatCount == MAX_CHEATS && _grid[item.x][item.y] == '.')
                             {
                                 var distanceToTarget = ManhattenDistance(item.x, item.y, targetX, targetY);
                                 var newVisted = new HashSet<(int x, int y)>(current.visisted) { item };
-                                queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, false, current.isCheating + 1), distanceToTarget);
+                                queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, true, false, current.cheatCount), distanceToTarget);
+                            }
+                            else if (current.isCheating && current.cheatCount < MAX_CHEATS)
+                            {
+                                var distanceToTarget = ManhattenDistance(item.x, item.y, targetX, targetY);
+                                var newVisted = new HashSet<(int x, int y)>(current.visisted) { item };
+                                queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, false, true, current.cheatCount + 1), distanceToTarget);
 
                                 if (_grid[item.x][item.y] == '.')
                                 {
                                     var newVisted2 = new HashSet<(int x, int y)>(current.visisted) { item };
-                                    queue.Enqueue((item.x, item.y, current.steps + 1, newVisted2, true, current.isCheating + 1), distanceToTarget);
+                                    queue.Enqueue((item.x, item.y, current.steps + 1, newVisted2, true, false, current.cheatCount + 1), distanceToTarget);
                                 }
                             }
-                            else if (current.isCheating == MAX_CHEATS && _grid[item.x][item.y] == '.')
+                            else if (!current.isCheating)
                             {
                                 var distanceToTarget = ManhattenDistance(item.x, item.y, targetX, targetY);
                                 var newVisted = new HashSet<(int x, int y)>(current.visisted) { item };
-                                queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, true, current.isCheating), distanceToTarget);
+                                queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, false, true, current.cheatCount + 1), distanceToTarget);
                             }
                         }
                     }
                 }
 
-                if (current.hasCheated && current.isCheating <= MAX_CHEATS)
+                if (!current.isCheating)
                 {
                     foreach (var item in PossibleDirections(current.x, current.y, _grid, false))
                     {
@@ -111,7 +117,7 @@ namespace AOC2024.Day20
                         {
                             var distanceToTarget = ManhattenDistance(item.x, item.y, targetX, targetY);
                             var newVisted = new HashSet<(int x, int y)>(current.visisted) { item };
-                            queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, current.hasCheated, current.isCheating), distanceToTarget);
+                            queue.Enqueue((item.x, item.y, current.steps + 1, newVisted, current.hasCheated, current.isCheating, current.cheatCount), distanceToTarget);
                         }
                     }
                 }
