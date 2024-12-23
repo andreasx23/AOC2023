@@ -33,9 +33,8 @@ namespace AOC2024.Day21
         {
             var sum = 0L;
 
-            Dictionary<(char current, char target), List<string>> numericKeypadDict = GenerateFromToTargetDict(_numericKeypad);
-            Dictionary<(char current, char target), List<string>> directionalDict = GenerateFromToTargetDict(_directionalKeypad);
-
+            var numericKeypadDict = GenerateFromToTargetDict(_numericKeypad);
+            var directionalDict = GenerateFromToTargetDict(_directionalKeypad);
             foreach (var row in _data)
             {
                 List<string> robot1Results = GenerateRobotResults(numericKeypadDict, row);
@@ -43,21 +42,28 @@ namespace AOC2024.Day21
                 List<string> allRobot2Results = [];
                 foreach (var robot2 in robot1Results)
                 {
-                    var robot2Results = GenerateRobotResults(directionalDict, robot2);
-                    allRobot2Results.AddRange(robot2Results);
+                    var robot2Results = Bfs(0, 2, robot2, _directionalKeypad).Distinct().ToList();
+                    var robot2Results2 = GenerateRobotResults(directionalDict, robot2);
+
+                    //Console.WriteLine(string.Join(Environment.NewLine, robot2Results));
+                    //Console.WriteLine(  );
+                    //Console.WriteLine(string.Join(Environment.NewLine, robot2Results2));
+
+                    allRobot2Results.AddRange(robot2Results2);
                 }
 
-                List<string> allRobot3Results = [];
-                foreach (var robot3 in allRobot2Results)
-                {
-                    var robot3Results = GenerateRobotResults(directionalDict, robot3);
-                    allRobot3Results.AddRange(robot3Results);
-                }
+                //List<string> allRobot3Results = [];
+                //foreach (var robot3 in allRobot2Results)
+                //{
+                //    var robot3Results = GenerateRobotResults(directionalDict, robot3);
+                //    allRobot3Results.AddRange(robot3Results);
+                //}
 
-                sum += int.Parse(row[..3]) * allRobot3Results.Min(x => x.Length);
+                //var min = allRobot3Results.Min(x => x.Length);
+                //sum += int.Parse(row[..3]) * allRobot3Results.Min(x => x.Length);
+
+                break;
             }
-
-            Console.WriteLine("GOAL: 126384");
 
             return sum;
         }
@@ -65,13 +71,13 @@ namespace AOC2024.Day21
         private static List<string> GenerateRobotResults(Dictionary<(char current, char target), List<string>> numericKeypadDict, string row)
         {
             List<string> robotResults = [];
-            var fromRobot1Char = 'A';
+            var fromRobotChar = 'A';
             var isFirstRun = true;
-            foreach (var targetRobot1Char in row)
+            foreach (var targetChar in row)
             {
-                var key = (fromRobot1Char, targetRobot1Char);
+                var key = (fromRobotChar, targetChar);
                 var shortestPaths = numericKeypadDict[key];
-                fromRobot1Char = targetRobot1Char;
+                fromRobotChar = targetChar;
                 if (isFirstRun)
                 {
                     isFirstRun = false;
@@ -156,12 +162,12 @@ namespace AOC2024.Day21
 
         private List<string> FindShortestPaths(int x, int y, int targetX, int targetY, char[][] grid)
         {
-            PriorityQueue<(int x, int y, int moves, HashSet<(int x, int y)> seen, int index, StringBuilder stringOfMoves), int> queue = new();
+            Queue<(int x, int y, int moves, HashSet<(int x, int y)> seen, int index, StringBuilder stringOfMoves)> queue = new();
             var seen = new HashSet<(int x, int y)>()
             {
                 (x, y)
             };
-            queue.Enqueue((x, y, 0, seen, 0, new StringBuilder()), 0);
+            queue.Enqueue((x, y, 0, seen, 0, new StringBuilder()));
 
             int lowestMoveCount = int.MaxValue;
             int total = 0;
@@ -189,6 +195,66 @@ namespace AOC2024.Day21
                     }
 
                     continue;
+                }
+
+                foreach (var item in PossibleDirections(current.x, current.y, grid))
+                {
+                    if (current.seen.Add((item.x, item.y)))
+                    {
+                        var nextStringOfMoves = new StringBuilder(current.stringOfMoves.ToString());
+                        nextStringOfMoves.Append(item.direction);
+                        queue.Enqueue((item.x, item.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, nextStringOfMoves));
+                    }
+                }
+            }
+
+            return possibleMoves.Select(x => x.ToString()).ToList();
+        }
+
+        private List<string> Bfs(int x, int y, string target, char[][] grid)
+        {
+            PriorityQueue<(int x, int y, int moves, HashSet<(int x, int y)> seen, int index, StringBuilder stringOfMoves), int> queue = new();
+            var seen = new HashSet<(int x, int y)>()
+            {
+                (x, y)
+            };
+            queue.Enqueue((x, y, 0, seen, 0, new StringBuilder()), 0);
+
+            int lowestMoveCount = int.MaxValue;
+            int total = 0;
+            List<StringBuilder> possibleMoves = new();
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+                if (grid[current.x][current.y] == target[current.index])
+                {
+                    current.seen.Clear();
+                    current.stringOfMoves.Append("A");
+
+                    if (current.index == target.Length - 1 && target[current.index] == 'A')
+                    {
+                        if (lowestMoveCount > current.moves)
+                        {
+                            lowestMoveCount = current.moves;
+                            total = 1;
+                            possibleMoves.Clear();
+                            possibleMoves.Add(current.stringOfMoves);
+                        }
+                        else if (lowestMoveCount == current.moves)
+                        {
+                            total++;
+                            possibleMoves.Add(current.stringOfMoves);
+                        }
+
+                        continue;
+                    }
+
+                    current.index++;
+                    if (target[current.index - 1] == target[current.index])
+                    {
+                        queue.Enqueue((current.x, current.y, current.moves + 1, new HashSet<(int x, int y)>(current.seen), current.index, current.stringOfMoves), 0);
+                    }
                 }
 
                 foreach (var item in PossibleDirections(current.x, current.y, grid))
@@ -225,11 +291,6 @@ namespace AOC2024.Day21
             }
 
             return possibleMoves;
-        }
-
-        private int ManhattenDistance(int x, int y, int targetX, int targetY)
-        {
-            return Math.Abs(x - targetX) + Math.Abs(y - targetY);
         }
 
         public void Result()
