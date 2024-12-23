@@ -4,7 +4,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        Day21Part1Temp day = new();
+        Day21Part2 day = new();
         day.Result();
     }
 }

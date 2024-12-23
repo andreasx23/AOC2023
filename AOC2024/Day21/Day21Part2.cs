@@ -3,7 +3,7 @@ using System.Text;
 
 namespace AOC2024.Day21
 {
-    public class Day21Part1Temp
+    public class Day21Part2
     {
         private static readonly bool _useTestData = false;
         private static readonly string _className = "Day21";
@@ -29,7 +29,7 @@ namespace AOC2024.Day21
             (-1, 0, '^')
         };
 
-        private readonly object _lockRobot3 = new();
+        private readonly object _lock = new();
 
         private long Solve(Stopwatch watch)
         {
@@ -43,36 +43,53 @@ namespace AOC2024.Day21
                 var newWatch = Stopwatch.StartNew();
                 var robot1Results = Bfs(_numericKeypad.Length - 1, _numericKeypad.Last().Length - 1, row, _numericKeypad, targetNumericKeypad, newWatch);
 
-                var robot2Results = new List<string>();
-                foreach (var robot1 in robot1Results)
+                List<string> currentResults = new(robot1Results);
+                for (int i = 0; i < 24; i++)
                 {
-                    var robot2 = Bfs(0, _directionalKeypad.First().Length - 1, robot1, _directionalKeypad, targetDirectionalKeypad, newWatch);
-                    robot2Results.AddRange(robot2);
+                    var results = DirectionalRobotResults(currentResults, targetDirectionalKeypad);
+                    currentResults = new List<string>(results);
+                    Console.WriteLine($"Current amount of results: {currentResults.Count} -- Running: {row} -- Current robot: {i + 1}");
                 }
 
-                var robot3Result = int.MaxValue;
-                Parallel.ForEach(robot2Results, robot2 =>
+                newWatch = Stopwatch.StartNew();
+                var lastRobotResult = int.MaxValue;
+                Parallel.ForEach(currentResults, robot2 =>
                 {
-                    var robot3 = Bfs(0, _directionalKeypad.First().Length - 1, robot2, _directionalKeypad, targetDirectionalKeypad, newWatch);
-                    lock (_lockRobot3)
+                    var results = Bfs(0, _directionalKeypad.First().Length - 1, robot2, _directionalKeypad, targetDirectionalKeypad, newWatch);
+                    lock (_lock)
                     {
-                        if (robot3.Any())
+                        if (results.Any())
                         {
-                            var minRobot3 = robot3.Min(x => x.Length);
-                            if (robot3Result > minRobot3)
+                            var minRobot3 = results.Min(x => x.Length);
+                            if (lastRobotResult > minRobot3)
                             {
-                                robot3Result = minRobot3;
-                                Console.WriteLine($"Current low: {robot3Result} -- Running: {row}");
+                                lastRobotResult = minRobot3;
+                                Console.WriteLine($"Current low: {lastRobotResult} -- Running: {row}");
                             }
                         }
                     }
                 });
 
-                sum += robot3Result * int.Parse(row.Substring(0, 3));
-                Console.WriteLine($"Current sum: {sum} -- Done: {row} -- Total elapsed: {watch.Elapsed} -- Lowest val: {robot3Result}");
+                sum += lastRobotResult * int.Parse(row.Substring(0, 3));
+                Console.WriteLine($"Current sum: {sum} -- Done: {row} -- Total elapsed: {watch.Elapsed} -- Lowest val: {lastRobotResult}");
             }
 
             return sum;
+        }
+
+        private List<string> DirectionalRobotResults(List<string> previousRobotResults, Dictionary<char, (int x, int y)> targetDirectionalKeypad)
+        {
+            Stopwatch watch = Stopwatch.StartNew();
+            List<string> currentRobotResults = new();
+            Parallel.ForEach(previousRobotResults, previousRobotResult =>
+            {
+                var results = Bfs(0, _directionalKeypad.First().Length - 1, previousRobotResult, _directionalKeypad, targetDirectionalKeypad, watch);
+                lock (_lock)
+                {
+                    currentRobotResults.AddRange(results);
+                }
+            });
+            return currentRobotResults;
         }
 
         private Dictionary<char, (int x, int y)> GenerateTargetDict(char[][] grid)
@@ -97,6 +114,8 @@ namespace AOC2024.Day21
                 (x, y)
             };
             queue.Enqueue((x, y, 0, seen, 0, new StringBuilder()), 0);
+
+            const int maxSecondsBeforeKill = 90;
 
             int lowestMoveCount = int.MaxValue;
             int total = 0;
@@ -125,7 +144,7 @@ namespace AOC2024.Day21
                             possibleMoves.Add(current.stringOfMoves);
                         }
 
-                        if (watch.Elapsed.TotalMinutes >= 2)
+                        if (watch.Elapsed.TotalSeconds >= maxSecondsBeforeKill)
                         {
                             break;
                         }
@@ -133,7 +152,7 @@ namespace AOC2024.Day21
                         continue;
                     }
 
-                    if (watch.Elapsed.TotalMinutes >= 2)
+                    if (watch.Elapsed.TotalSeconds >= maxSecondsBeforeKill)
                     {
                         break;
                     }
